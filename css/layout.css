@@ -1,0 +1,98 @@
+* {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    height: 100vh;
+    margin: 0;
+
+   
+    background: linear-gradient(
+        135deg,
+         white 50%,
+          #0A2B8E 50%
+    );
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+
+    background: white;
+    padding: 40px;
+    width: 420px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.card h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 26px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18px;
+}
+
+.field label {
+    font-size: 15px;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.field input,
+.field select {
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+.field input:focus,
+.field select:focus {
+    border-color: #4a90e2;
+}
+
+.btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    background: #4a90e2;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #357abd;
+}
+
+.welcome {
+    display: block;
+    color: #0A2B8E;
+    position: absolute;
+    top: 250px;
+    left: 50px;
+    font-size: 20px;
+    font-weight: bold;
+   font-family: 'Georgia', serif;
+}
+
+.end {
+    margin-top: 10px;
+    margin-left: 10px;
+    font-size: 12px;
+    color: #666;
+}
