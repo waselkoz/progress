@@ -14,11 +14,26 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['toggle_resit'])) {
     echo "<script>window.onload = () => showToast('Resit Period is now " . ($new_val == '1' ? 'OPEN' : 'CLOSED') . "');</script>";
 }
 
+if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['toggle_grading'])) {
+    $new_val = $_POST['grading_val'] == '1' ? '1' : '0';
+    $stmt = $pdo->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = 'grading_open'");
+    $stmt->execute([$new_val]);
+    if($stmt->rowCount() == 0) {
+        // Just in case it doesn't exist
+        $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('grading_open', ?)")->execute([$new_val]);
+    }
+    echo "<script>window.onload = () => showToast('Global Grading is now " . ($new_val == '1' ? 'OPEN' : 'CLOSED') . "');</script>";
+}
+
 $stmtS = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'current_semester'");
 $current_semester = $stmtS->fetchColumn() ?: 'S1';
 
 $stmtR = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'resit_period_open'");
 $resit_open = $stmtR->fetchColumn() == '1';
+
+$stmtG = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'grading_open'");
+$grading_open_val = $stmtG->fetchColumn();
+$grading_open = ($grading_open_val === false) ? true : ($grading_open_val == '1');
 ?>
 
 <div class="card-container">
@@ -57,10 +72,16 @@ $resit_open = $stmtR->fetchColumn() == '1';
             <button onclick="showToast('Archiving initialized...');" class="logout-btn" style="margin-top: 15px; background: #0A2B8E; border: none; width: 100%;">Initialize</button>
         </div>
 
-        <div style="flex: 1; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
-            <h3 style="color: #2d3748; margin-bottom: 10px; font-size: 16px;">Maintenance</h3>
-            <p style="font-size: 13px; color: #718096;">Lock portals for system maintenance.</p>
-            <button onclick="showToast('Locking portals...');" class="logout-btn" style="margin-top: 15px; background: #e74c3c; border: none; width: 100%;">Enable Lock</button>
+        <div style="flex: 1; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; background: #f8fafc;">
+            <h3 style="color: #2d3748; margin-bottom: 10px; font-size: 16px;">Grading Control</h3>
+            <p style="font-size: 13px; color: #718096; margin-bottom: 15px;">Enable or Disable teacher grading and editing system-wide.</p>
+            <form method="POST">
+                <input type="hidden" name="toggle_grading" value="1">
+                <input type="hidden" name="grading_val" value="<?= $grading_open ? '0' : '1' ?>">
+                <button type="submit" class="logout-btn" style="background: <?= $grading_open ? '#e74c3c' : '#2ecc71' ?>; border: none; width: 100%;">
+                    <?= $grading_open ? 'Lock Grading Platform' : 'Unlock Grading Platform' ?>
+                </button>
+            </form>
         </div>
         
         <div style="flex: 1; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">

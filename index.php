@@ -69,7 +69,7 @@
     </section>
 
     <footer class="footer-info">
-        &copy; 2026 USTHB - PWEB INFO-ISIL Section: C. LAACHEMI. All rights reserved.
+        &copy; 2026 USTHB C. LAACHEMI. All rights reserved 38.
     </footer>
 
 </body>

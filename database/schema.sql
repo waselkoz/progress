@@ -109,7 +109,7 @@ CREATE TABLE grades (
     grade DECIMAL(5, 2) NULL,
     td_grade DECIMAL(5, 2) NULL,
     tp_grade DECIMAL(5, 2) NULL,
-    project_grade DECIMAL(5, 2) NULL,
+    final_grade DECIMAL(5, 2) NULL,
     rattrapage_grade DECIMAL(5, 2) NULL,
     is_dette BOOLEAN DEFAULT FALSE,
     comment VARCHAR(255),
@@ -175,13 +175,13 @@ INSERT INTO section (name, speciality_id, year_id) VALUES
 INSERT INTO `group` (name, section_id) VALUES
     ('G1', 1),
     ('G2', 1),
-    ('G1', 2),
-    ('G1', 3);
+    ('G3', 1),
+    ('G4', 1);
 
 INSERT INTO users (id, name, email, password, role, is_active) VALUES
-    (1, 'Alex Student', 'alex@student.com', '$2y$10$v0PPKyP8Qw972JTMGp8qyuwfnSHPtEhOysAmBKEJVd9EQCtGDYNmO', 'student', 1),
-    (2, 'Sara Teacher', 'sara@teacher.com', '$2y$10$v0PPKyP8Qw972JTMGp8qyuwfnSHPtEhOysAmBKEJVd9EQCtGDYNmO', 'teacher', 1),
-    (3, 'Admin User', 'admin@portal.com', '$2y$10$v0PPKyP8Qw972JTMGp8qyuwfnSHPtEhOysAmBKEJVd9EQCtGDYNmO', 'admin', 1);
+    (1, 'Wassim Sleama', 'wassim.sleama@usthb.dz', '$2y$10$v0PPKyP8Qw972JTMGp8qyuwfnSHPtEhOysAmBKEJVd9EQCtGDYNmO', 'student', 1),
+    (2, 'Imad Khatab', 'imad.khatab@usthb.dz', '$2y$10$v0PPKyP8Qw972JTMGp8qyuwfnSHPtEhOysAmBKEJVd9EQCtGDYNmO', 'teacher', 1),
+    (3, 'Admin', 'admin@usthb.dz', '$2y$10$v0PPKyP8Qw972JTMGp8qyuwfnSHPtEhOysAmBKEJVd9EQCtGDYNmO', 'admin', 1);
 
 INSERT INTO student (user_id, student_number, section_id, group_id, birth_date, enrollment_year) VALUES
     (1, 'STU20260001', 1, 1, '2005-05-15', 2026);

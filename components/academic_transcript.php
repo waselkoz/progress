@@ -12,7 +12,7 @@ if(isset($_SESSION['student_id'])) {
     
     $stmt = $pdo->prepare("
         SELECT c.code, c.name, c.credits, c.coefficient, g.grade as exam_grade, 
-               g.td_grade, g.tp_grade, g.project_grade, g.rattrapage_grade, g.is_dette, c.semester
+               g.td_grade, g.tp_grade, g.final_grade as db_final_grade, g.rattrapage_grade, g.is_dette, c.semester
         FROM courses c
         JOIN student s ON s.id = ?
         JOIN section sec ON s.section_id = sec.id
@@ -51,7 +51,7 @@ function getAppreciation($grade) {
                 <th>Exam (60%)</th>
                 <th>TD</th>
                 <th>TP</th>
-                <th>Proj.</th>
+                <th>Credits</th>
                 <th>Resit</th>
                 <th>Final</th>
                 <th>Result</th>
@@ -61,18 +61,23 @@ function getAppreciation($grade) {
             <?php if(empty($transcript)): ?>
             <tr><td colspan="10">No modules assigned yet.</td></tr>
             <?php else: ?>
-                <?php foreach($transcript as $t): 
+                <?php 
+                    $total_credits = 0;
+                    $acquired_credits = 0;
+                    $modules_calc = [];
+                    foreach($transcript as $t): 
                     $exam = $t['exam_grade'];
                     $td = $t['td_grade'];
                     $tp = $t['tp_grade'];
-                    $proj = $t['project_grade'];
                     $rattrapage = $t['rattrapage_grade'];
                     $coef = $t['coefficient'] ?? 1;
+                    $module_credits = $t['credits'] ?? 0;
+                    
+                    $total_credits += $module_credits;
                     
                     $ca_sum = 0; $ca_count = 0;
                     if ($td !== null) { $ca_sum += $td; $ca_count++; }
                     if ($tp !== null) { $ca_sum += $tp; $ca_count++; }
-                    if ($proj !== null) { $ca_sum += $proj; $ca_count++; }
                     $ca_avg = ($ca_count > 0) ? ($ca_sum / $ca_count) : null;
                     
                     $main_exam = $exam;
@@ -80,19 +85,32 @@ function getAppreciation($grade) {
                         $main_exam = $rattrapage;
                     }
                     
-                    $final_grade = null;
-                    if ($main_exam !== null && $ca_avg !== null) {
-                        $final_grade = ($main_exam * 0.6) + ($ca_avg * 0.4);
-                    } elseif ($main_exam !== null) {
-                        $final_grade = $main_exam;
-                    } elseif ($ca_avg !== null) {
-                        $final_grade = $ca_avg;
+                    $final_grade = $t['db_final_grade'] ?? null;
+                    if ($final_grade === null) {
+                        if ($main_exam !== null && $ca_avg !== null) {
+                            $final_grade = ($main_exam * 0.6) + ($ca_avg * 0.4);
+                        } elseif ($main_exam !== null) {
+                            $final_grade = $main_exam;
+                        } elseif ($ca_avg !== null) {
+                            $final_grade = $ca_avg;
+                        }
                     }
                     
                     if ($final_grade !== null) {
                         $total_notes_coef += ($final_grade * $coef);
                         $total_coef += $coef;
+                        
+                        if ($final_grade >= 10) {
+                            $acquired_credits += $module_credits;
+                        }
                     }
+                    
+                    $modules_calc[] = [
+                        't' => $t,
+                        'final_grade' => $final_grade,
+                        'credits' => $module_credits,
+                        'coef' => $coef
+                    ];
                 ?>
                 <tr>
                     <td>
@@ -105,7 +123,7 @@ function getAppreciation($grade) {
                     <td style="font-weight: 500; color: #4a5568;"><?= $exam !== null ? number_format($exam, 2) : '-' ?></td>
                     <td style="color: #666;"><?= $td !== null ? number_format($td, 2) : '-' ?></td>
                     <td style="color: #666;"><?= $tp !== null ? number_format($tp, 2) : '-' ?></td>
-                    <td style="color: #666;"><?= $proj !== null ? number_format($proj, 2) : '-' ?></td>
+                    <td style="color: #0A2B8E; font-weight: 600;"><?= $module_credits ?></td>
                     <td style="color: #f39c12; font-weight: 600;"><?= $rattrapage !== null ? number_format($rattrapage, 2) : '-' ?></td>
                     
                     <td>
@@ -122,9 +140,16 @@ function getAppreciation($grade) {
 
     <?php if($total_coef > 0): 
         $moyenne_generale = $total_notes_coef / $total_coef;
+        if ($moyenne_generale >= 10) {
+            $acquired_credits = $total_credits; // By compensation rule
+        }
     ?>
     <div class="info-panel-blue" style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
         <div>
+            <p class="stat-label">Acquired Credits</p>
+            <h2 class="stat-value" style="font-size: 28px; <?= $acquired_credits == $total_credits ? 'color: #2ecc71;' : '' ?>"><?= $acquired_credits ?> / <?= $total_credits ?></h2>
+        </div>
+        <div style="text-align: center;">
             <p class="stat-label">Overall Average</p>
             <h2 class="stat-value" style="font-size: 32px;"><?= number_format($moyenne_generale, 2) ?> / 20</h2>
         </div>

@@ -27,21 +27,19 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['new_name'])) {
         $employee_number = 'EMP' . date('Y') . str_pad($maxVal + 1, 4, '0', STR_PAD_LEFT);
     }
 
-    if(preg_match('/@gmail\.com$/', $email)) {
-        $hashed_pass = password_hash('password', PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("INSERT INTO users (name, email, personal_email, password, role, is_active) VALUES (?, ?, ?, ?, ?, 1)");
-        $stmt->execute([$name, $email, $email, $hashed_pass, $role]);
-        $new_user_id = $pdo->lastInsertId();
-        
-        if($role == 'student') {
-            $pdo->prepare("INSERT INTO student (user_id, section_id, group_id, student_number, birth_date, enrollment_year) VALUES (?, ?, ?, ?, ?, ?)")
-                ->execute([$new_user_id, $section_id, $group_id, $student_number, $_POST['birth_date'] ?? null, $enroll_year]);
-        } elseif ($role == 'teacher') {
-            $pdo->prepare("INSERT INTO teacher (user_id, employee_number, hire_date) VALUES (?, ?, ?)")
-                ->execute([$new_user_id, $employee_number, date('Y-m-d')]);
-        }
-        echo "<script>window.onload = () => showToast('New account created and assigned!');</script>";
+    $hashed_pass = password_hash('password', PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("INSERT INTO users (name, email, personal_email, password, role, is_active) VALUES (?, ?, ?, ?, ?, 1)");
+    $stmt->execute([$name, $email, $email, $hashed_pass, $role]);
+    $new_user_id = $pdo->lastInsertId();
+    
+    if($role == 'student') {
+        $pdo->prepare("INSERT INTO student (user_id, section_id, group_id, student_number, birth_date, enrollment_year) VALUES (?, ?, ?, ?, ?, ?)")
+            ->execute([$new_user_id, $section_id, $group_id, $student_number, $_POST['birth_date'] ?? null, $enroll_year]);
+    } elseif ($role == 'teacher') {
+        $pdo->prepare("INSERT INTO teacher (user_id, employee_number, hire_date) VALUES (?, ?, ?)")
+            ->execute([$new_user_id, $employee_number, date('Y-m-d')]);
     }
+    echo "<script>window.onload = () => showToast('New account created and assigned!');</script>";
 }
 
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['approve_user_id'])) {
@@ -77,8 +75,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_user_id'])) {
     echo "<script>window.onload = () => showToast('Account details updated!');</script>";
 }
 
-if(isset($_GET['action']) && $_GET['action'] == 'suspend') {
-    echo "<script>window.addEventListener('DOMContentLoaded', () => showToast('Account suspended successfully.'));</script>";
+if(isset($_GET['action']) && $_GET['action'] == 'suspend' && isset($_GET['id'])) {
+    $pdo->prepare("DELETE FROM users WHERE id = ?")->execute([$_GET['id']]);
+    echo "<script>window.addEventListener('DOMContentLoaded', () => showToast('Account deleted successfully.'));</script>";
 }
 
 $users = $pdo->query("
@@ -119,7 +118,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
         <h4 style="margin-bottom: 15px; color:#2d3748;">Register New User</h4>
         <form method="POST" class="form-grid">
             <input type="text" name="new_name" class="form-input" placeholder="Full Name" required>
-            <input type="email" name="new_email" class="form-input" placeholder="Email (@gmail.com only)" required pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$" title="Address must end with @gmail.com">
+            <input type="email" name="new_email" class="form-input" placeholder="Email Address" required>
             
             <select name="new_role" id="role-select" class="form-input" required onchange="toggleStudentFields(this.value)">
                 <option value="student">Student</option>

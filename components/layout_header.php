@@ -42,16 +42,24 @@ if ($user_role === 'student') {
     <meta charset="UTF-8">
     <title>Student Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/dashboard.css">
     <script src="../js/dashboard.js"></script>
 </head>
 <body>
     <div class="sidebar">
         <div class="sidebar-header">
-            <img src="../img/USTHB.png" alt="Logo">
-            <h2>Student Portal</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div style="text-align: center; flex: 1;">
+                    <img src="../img/USTHB.png" alt="Logo">
+                    <h2 class="mobile-hide-title">Student Portal</h2>
+                </div>
+                <button id="mobile-menu-btn" style="display: none; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">
+                    &#9776;
+                </button>
+            </div>
         </div>
-        <ul class="nav-links">
+        <ul class="nav-links" id="sidebar-nav-links">
             <?php if(isset($_SESSION['user_role']) && $_SESSION['user_role'] == 'teacher'): ?>
                 <li class="<?= $active_page == 'dashboard.php' ? 'active' : '' ?>"><a href="dashboard.php">Dashboard</a></li>
                 <li class="<?= $active_page == 'teacher_classes.php' ? 'active' : '' ?>"><a href="teacher_classes.php">My Modules</a></li>
@@ -63,10 +71,10 @@ if ($user_role === 'student') {
             <?php elseif(isset($_SESSION['user_role']) && $_SESSION['user_role'] == 'admin'): ?>
                 <li class="<?= $active_page == 'dashboard.php' ? 'active' : '' ?>"><a href="dashboard.php">Dashboard</a></li>
                 <li class="<?= $active_page == 'admin_users.php' ? 'active' : '' ?>"><a href="admin_users.php">User Management</a></li>
+                <li class="<?= $active_page == 'admin_import_students.php' ? 'active' : '' ?>"><a href="admin_import_students.php">Bulk Student Import</a></li>
                 <li class="<?= $active_page == 'admin_courses.php' ? 'active' : '' ?>"><a href="admin_courses.php">Module Management</a></li>
                 <li class="<?= $active_page == 'admin_schedules.php' ? 'active' : '' ?>"><a href="admin_schedules.php">Schedules Management</a></li>
                 <li class="<?= $active_page == 'timetable.php' ? 'active' : '' ?>"><a href="timetable.php">View Live Schedule</a></li>
-                <li class="<?= $active_page == 'admin_notes.php' ? 'active' : '' ?>"><a href="admin_notes.php">Grade Management</a></li>
                 <li class="<?= $active_page == 'admin_system.php' ? 'active' : '' ?>"><a href="admin_system.php">System Settings</a></li>
                 <li class="<?= $active_page == 'profile.php' ? 'active' : '' ?>"><a href="profile.php">Profile</a></li>
             <?php else: ?>
@@ -87,3 +95,16 @@ if ($user_role === 'student') {
             <h1>Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</h1>
             <a href="logout.php" class="logout-btn">Log out</a>
         </div>
+
+        <script>
+            // Mobile Menu Toggle
+            document.addEventListener('DOMContentLoaded', function() {
+                const menuBtn = document.getElementById('mobile-menu-btn');
+                const navLinks = document.getElementById('sidebar-nav-links');
+                if(menuBtn) {
+                    menuBtn.addEventListener('click', function() {
+                        navLinks.classList.toggle('show-mobile');
+                    });
+                }
+            });
+        </script>

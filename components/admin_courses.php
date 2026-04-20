@@ -7,6 +7,18 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['c_code'])) {
     echo "<script>window.onload = () => showToast('Module added successfully!');</script>";
 }
 
+if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_course_id'])) {
+    $stmt = $pdo->prepare("DELETE FROM courses WHERE id = ?");
+    $stmt->execute([$_POST['delete_course_id']]);
+    echo "<script>window.onload = () => showToast('Module deleted successfully!');</script>";
+}
+
+if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_course_action'])) {
+    $stmt = $pdo->prepare("UPDATE courses SET name=?, code=?, credits=?, coefficient=?, semester=? WHERE id=?");
+    $stmt->execute([$_POST['e_name'], $_POST['e_code'], $_POST['e_credits'], $_POST['e_coef'], $_POST['e_sem'], $_POST['e_id']]);
+    echo "<script>window.onload = () => showToast('Module updated successfully!');</script>";
+}
+
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['assign_teacher'])) {
     $tid = $_POST['teacher_id'];
     $cid = $_POST['course_id'];
@@ -137,6 +149,7 @@ $active_assignments = $pdo->query("
                 <th>Credits</th>
                 <th>Semester</th>
                 <th>Responsible</th>
+                <th style="text-align: right;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -148,6 +161,13 @@ $active_assignments = $pdo->query("
                 <td><?= htmlspecialchars($c['credits']) ?> Cr</td>
                 <td><?= htmlspecialchars($c['semester']) ?></td>
                 <td><span style="font-size: 14px; font-weight: 500; color: #4a5568;"><?= htmlspecialchars($c['teacher_names'] ?? 'None') ?></span></td>
+                <td style="display:flex; gap:10px; justify-content:flex-end; align-items: center; border-bottom: none; border-top: none;">
+                    <button onclick='openEditModModal(<?= json_encode($c) ?>)' style="background:none; border:none; color:#4a90e2; font-weight:bold; cursor:pointer; font-size:13px;">Edit</button>
+                    <form method="POST" onsubmit="return confirm('Delete this module completely? This will also unassign all teachers and delete associated grades!');" style="margin:0;">
+                        <input type="hidden" name="delete_course_id" value="<?= $c['id'] ?>">
+                        <button type="submit" style="background:none; border:none; color:#e53e3e; font-weight:bold; cursor:pointer; font-size:13px;">Delete</button>
+                    </form>
+                </td>
             </tr>
             <?php endforeach; ?>
         </tbody>
@@ -191,5 +211,56 @@ $active_assignments = $pdo->query("
         </tbody>
     </table>
 </div>
+
+<div id="edit-mod-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h3 style="color: #0A2B8E; margin-bottom: 20px;">Edit Module</h3>
+        <form method="POST">
+            <input type="hidden" name="edit_course_action" value="1">
+            <input type="hidden" name="e_id" id="em-id">
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 13px; color: #666;">Module Name</label>
+                <input type="text" name="e_name" id="em-name" class="form-input" required>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 13px; color: #666;">Code (e.g. CS101)</label>
+                <input type="text" name="e_code" id="em-code" class="form-input" required>
+            </div>
+            <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                <div style="flex:1;">
+                    <label style="font-size: 13px; color: #666;">Credits</label>
+                    <input type="number" name="e_credits" id="em-credits" class="form-input" required>
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size: 13px; color: #666;">Coefficient</label>
+                    <input type="number" name="e_coef" id="em-coef" class="form-input" required>
+                </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; color: #666;">Semester</label>
+                <select name="e_sem" id="em-sem" class="form-input" required>
+                    <option value="S1">S1</option>
+                    <option value="S2">S2</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 1;">Save Changes</button>
+                <button type="button" onclick="document.getElementById('edit-mod-modal').style.display='none'" class="logout-btn" style="flex: 1; border: 1px solid #cbd5e0; color: #4a5568;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditModModal(c) {
+    document.getElementById('em-id').value = c.id;
+    document.getElementById('em-name').value = c.name;
+    document.getElementById('em-code').value = c.code;
+    document.getElementById('em-credits').value = c.credits;
+    document.getElementById('em-coef').value = c.coefficient;
+    document.getElementById('em-sem').value = c.semester;
+    document.getElementById('edit-mod-modal').style.display = 'flex';
+}
+</script>
 
 <?php include 'layout_footer.php'; ?>

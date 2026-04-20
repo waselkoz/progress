@@ -67,9 +67,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_btn'])) {
                 }
             }
 
-            EmailService::sendVerificationCode($personal_email, $code);
-            $step = 2;
-            $success = "Verification code sent to $personal_email!";
+            if (EmailService::sendVerificationCode($personal_email, $code)) {
+                $step = 2;
+                $success = "Verification code sent to $personal_email!";
+            } else {
+                $error = "Failed to send verification email. Please check if the email address is valid.";
+            }
         }
     }
 }

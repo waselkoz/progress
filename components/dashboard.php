@@ -46,7 +46,7 @@ if ($is_student) {
             <tbody>
                 <?php
                 $stmt = $pdo->prepare("
-                    SELECT c.name, g.grade as exam, g.td_grade, g.tp_grade, g.project_grade
+                    SELECT c.name, g.grade as exam, g.td_grade, g.tp_grade, g.final_grade
                     FROM grades g
                     JOIN courses c ON g.course_id = c.id
                     WHERE g.student_id = ?
@@ -63,12 +63,17 @@ if ($is_student) {
                         $ca_sum = 0; $ca_count = 0;
                         if ($rg['td_grade'] !== null) { $ca_sum += $rg['td_grade']; $ca_count++; }
                         if ($rg['tp_grade'] !== null) { $ca_sum += $rg['tp_grade']; $ca_count++; }
-                        if ($rg['project_grade'] !== null) { $ca_sum += $rg['project_grade']; $ca_count++; }
                         $ca_avg = ($ca_count > 0) ? ($ca_sum / $ca_count) : null;
                         
-                        $final = null;
-                        if ($rg['exam'] !== null && $ca_avg !== null) {
-                            $final = ($rg['exam'] * 0.6) + ($ca_avg * 0.4);
+                        $final = $rg['final_grade'] ?? null;
+                        if ($final === null) {
+                            if ($rg['exam'] !== null && $ca_avg !== null) {
+                                $final = ($rg['exam'] * 0.6) + ($ca_avg * 0.4);
+                            } elseif ($rg['exam'] !== null) {
+                                $final = $rg['exam'];
+                            } elseif ($ca_avg !== null) {
+                                $final = $ca_avg;
+                            }
                         }
                 ?>
                     <tr>
