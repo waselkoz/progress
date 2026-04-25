@@ -6,7 +6,7 @@ $selected_section = $_GET['section_id'] ?? ($student_info['section_id'] ?? null)
 $exams = [];
 if ($user_role === 'teacher' && isset($_SESSION['teacher_id'])) {
     $stmt = $pdo->prepare("
-        SELECT e.exam_date, e.room, e.exam_type, c.name, c.code
+        SELECT DISTINCT e.exam_date, e.room, e.exam_type, c.name, c.code
         FROM exams e
         JOIN courses c ON e.course_id = c.id
         JOIN course_assignment ca ON ca.course_id = c.id

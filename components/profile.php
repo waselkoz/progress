@@ -3,7 +3,7 @@
 $profile = null;
 if(isset($_SESSION['user_id'])) {
     $stmt = $pdo->prepare("
-        SELECT u.name, u.email, u.role, 
+        SELECT u.name, u.email, u.role, u.password_changed, 
                s.student_number, s.birth_date, s.enrollment_year,
                t.employee_number, t.hire_date,
                a.admin_level
@@ -36,12 +36,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
         $msg_type = "error";
     } else {
         $hashed = password_hash($new_pass, PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE users SET password = ?, password_changed = 1 WHERE id = ?");
         $stmt->execute([$hashed, $_SESSION['user_id']]);
+        $profile['password_changed'] = 1; // update locally for immediate UI reflection
         $msg = "Password updated successfully!";
         $msg_type = "success";
     }
 }
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_reset'])) {
+    $reason = $_POST['reset_reason'];
+    $stmt = $pdo->prepare("INSERT INTO password_requests (user_id, reason) VALUES (?, ?)");
+    $stmt->execute([$_SESSION['user_id'], $reason]);
+    $msg = $lang == 'ar' ? "تم إرسال الطلب بنجاح." : "Request submitted successfully.";
+    $msg_type = "success";
+}
+
+$stmtReq = $pdo->prepare("SELECT * FROM password_requests WHERE user_id = ? AND status = 'pending' ORDER BY created_at DESC LIMIT 1");
+$stmtReq->execute([$_SESSION['user_id']]);
+$pending_request = $stmtReq->fetch();
 ?>
 
 <<div class="card-container">
@@ -136,23 +149,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
                     </div>
                 <?php endif; ?>
 
-                <form method="POST" style="max-width: 450px;">
-                    <div style="margin-bottom: 20px;">
-                        <label style="display:block; margin-bottom:8px; font-size:13px; font-weight: 600; color:#475569;"><?= $t['update_pass'] ?></label>
-                        <div style="display: flex; flex-direction: column; gap: 12px;">
-                            <input type="password" name="new_password" class="form-input" placeholder="<?= $lang == 'ar' ? 'كلمة المرور الجديدة' : 'New password' ?>" required style="padding: 12px;">
-                            <input type="password" name="confirm_password" class="form-input" placeholder="<?= $lang == 'ar' ? 'تأكيد كلمة المرور' : 'Confirm password' ?>" required style="padding: 12px;">
+                <?php if (($profile['password_changed'] ?? 0) == 1): ?>
+                    <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 25px; border-radius: 12px; text-align: center; margin-top: 20px;">
+                        <i class="fas fa-shield-check" style="font-size: 32px; color: #10b981; margin-bottom: 12px;"></i>
+                        <p style="margin: 0 0 8px 0; color: #334155; font-size: 15px; font-weight: 600;">
+                            <?= $lang == 'ar' ? 'تم تحديث كلمة المرور الخاصة بك' : 'Your password has been updated' ?>
+                        </p>
+                        <p style="margin: 0 0 15px 0; color: #64748b; font-size: 13px; line-height: 1.5;">
+                            <?= $lang == 'ar' ? 'لقد قمت مسبقاً بتغيير كلمة المرور الافتراضية.' : 'You have already changed your default password.' ?>
+                        </p>
+                        
+                        <?php if($pending_request): ?>
+                            <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 15px; border-radius: 8px; color: #92400e; font-size: 13px; font-weight: 600;">
+                                <i class="fas fa-clock"></i> <?= $lang == 'ar' ? 'طلبك قيد المراجعة من قبل الإدارة.' : 'Your request is currently pending review by the administration.' ?>
+                            </div>
+                        <?php else: ?>
+                            <form method="POST" style="text-align: left; background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 15px;">
+                                <label style="display:block; margin-bottom:8px; font-size:13px; font-weight: 600; color:#475569;">
+                                    <?= $lang == 'ar' ? 'طلب إعادة تعيين (سبب الطلب):' : 'Request Reset (Reason):' ?>
+                                </label>
+                                <textarea name="reset_reason" class="form-input" rows="2" placeholder="<?= $lang == 'ar' ? 'مثال: لقد نسيت كلمة المرور الخاصة بي...' : 'e.g. I forgot my password...' ?>" required style="width: 100%; border-radius: 8px; resize: none; margin-bottom: 10px;"></textarea>
+                                <button type="submit" name="request_reset" class="btn-primary" style="width: 100%; justify-content: center; background: #0f172a; border-radius: 8px; padding: 10px;">
+                                    <i class="fas fa-paper-plane"></i> <?= $lang == 'ar' ? 'إرسال الطلب' : 'Send Request' ?>
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
+                <?php else: ?>
+                    <form method="POST" style="max-width: 450px;">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display:block; margin-bottom:8px; font-size:13px; font-weight: 600; color:#475569;"><?= $t['update_pass'] ?></label>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <input type="password" name="new_password" class="form-input" placeholder="<?= $lang == 'ar' ? 'كلمة المرور الجديدة' : 'New password' ?>" required style="padding: 12px;">
+                                <input type="password" name="confirm_password" class="form-input" placeholder="<?= $lang == 'ar' ? 'تأكيد كلمة المرور' : 'Confirm password' ?>" required style="padding: 12px;">
+                            </div>
                         </div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 15px; margin-top: 25px;">
-                        <button type="submit" name="change_password" class="btn-primary" style="background: #0A2B8E; padding: 12px 30px; font-weight: 600; border: none; box-shadow: 0 4px 6px -1px rgba(10, 43, 142, 0.2);">
-                            <?= $t['commence'] ?>
-                        </button>
-                        <span style="font-size: 12px; color: #94a3b8; font-style: italic;">
-                            <i class="fas fa-lock"></i> <?= $t['encrypted'] ?>
-                        </span>
-                    </div>
-                </form>
+                        <div style="display: flex; align-items: center; gap: 15px; margin-top: 25px;">
+                            <button type="submit" name="change_password" class="btn-primary" style="background: #0A2B8E; padding: 12px 30px; font-weight: 600; border: none; box-shadow: 0 4px 6px -1px rgba(10, 43, 142, 0.2);">
+                                <?= $t['commence'] ?>
+                            </button>
+                            <span style="font-size: 12px; color: #94a3b8; font-style: italic;">
+                                <i class="fas fa-lock"></i> <?= $t['encrypted'] ?>
+                            </span>
+                        </div>
+                    </form>
+                <?php endif; ?>
             </div>
             <?php endif; ?>
         </div>

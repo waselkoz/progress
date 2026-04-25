@@ -23,15 +23,15 @@ $stmtGrading = $pdo->query("SELECT setting_value FROM system_settings WHERE sett
 $grading_open_val = $stmtGrading->fetchColumn();
 $grading_open = ($grading_open_val === false) ? true : ($grading_open_val == '1');
 
+$course_code = $class_info['course_code'];
+$has_tp = in_array($course_code, ['SE', 'BDD', 'GL', 'PWEB']);
+$has_td = ($course_code !== 'PWEB');
+$has_exam = true; // All courses have exams
 
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['grades'])) {
     if (!$grading_open) {
         die("Error: The Grading Platform is strictly locked by the Administration.");
     }
-    $course_code = $class_info['course_code'];
-    $has_tp = in_array($course_code, ['SE', 'BDD', 'GL', 'PWEB']);
-    $has_td = ($course_code !== 'PWEB');
-    $has_exam = true; // All courses have exams
 
     foreach($_POST['grades'] as $student_id => $data) {
         $exam = $data['grade'] !== '' ? $data['grade'] : null;

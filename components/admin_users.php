@@ -26,7 +26,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['new_name'])) {
         $employee_number = 'EMP' . date('Y') . str_pad($maxVal + 1, 4, '0', STR_PAD_LEFT);
     }
 
-    $hashed_pass = password_hash('password', PASSWORD_DEFAULT);
+    $hashed_pass = password_hash('123456', PASSWORD_DEFAULT);
     $stmt = $pdo->prepare("INSERT INTO users (name, email, personal_email, password, role, is_active) VALUES (?, ?, ?, ?, ?, 1)");
     $stmt->execute([$name, $email, $email, $hashed_pass, $role]);
     $new_user_id = $pdo->lastInsertId();
@@ -78,6 +78,24 @@ if(isset($_GET['action']) && $_GET['action'] == 'suspend' && isset($_GET['id']))
     echo "<script>window.addEventListener('DOMContentLoaded', () => showToast('Account deleted successfully.'));</script>";
 }
 
+if(isset($_GET['action']) && $_GET['action'] == 'reset_pass' && isset($_GET['id'])) {
+    $hashed = password_hash('USTHB2026!', PASSWORD_DEFAULT);
+    $pdo->prepare("UPDATE users SET password = ?, password_changed = 0 WHERE id = ?")->execute([$hashed, $_GET['id']]);
+    echo "<script>window.addEventListener('DOMContentLoaded', () => showToast('Password reset to default (USTHB2026!)'));</script>";
+}
+
+if(isset($_GET['action']) && $_GET['action'] == 'approve_req' && isset($_GET['req_id']) && isset($_GET['user_id'])) {
+    $hashed = password_hash('123456', PASSWORD_DEFAULT);
+    $pdo->prepare("UPDATE users SET password = ?, password_changed = 0 WHERE id = ?")->execute([$hashed, $_GET['user_id']]);
+    $pdo->prepare("UPDATE password_requests SET status = 'approved' WHERE id = ?")->execute([$_GET['req_id']]);
+    echo "<script>window.addEventListener('DOMContentLoaded', () => showToast('Request approved. Password reset to 123456.'));</script>";
+}
+
+if(isset($_GET['action']) && $_GET['action'] == 'reject_req' && isset($_GET['req_id'])) {
+    $pdo->prepare("UPDATE password_requests SET status = 'rejected' WHERE id = ?")->execute([$_GET['req_id']]);
+    echo "<script>window.addEventListener('DOMContentLoaded', () => showToast('Request rejected.'));</script>";
+}
+
 $users = $pdo->query("
     SELECT u.id, u.name, u.email, u.personal_email, u.role, u.is_active, u.created_at, 
            s.student_number, t.employee_number, s.id as student_db_id,
@@ -90,6 +108,14 @@ $users = $pdo->query("
     LEFT JOIN `group` g ON s.group_id = g.id
     WHERE u.is_active != 0
     ORDER BY FIELD(u.is_active, 2, 1), u.role, u.name
+")->fetchAll();
+
+$requests = $pdo->query("
+    SELECT pr.*, u.name, u.email, u.role
+    FROM password_requests pr
+    JOIN users u ON pr.user_id = u.id
+    WHERE pr.status = 'pending'
+    ORDER BY pr.created_at DESC
 ")->fetchAll();
 
 $sections = $pdo->query("SELECT id, name FROM section ORDER BY name")->fetchAll();
@@ -194,6 +220,12 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
         </button>
         <button onclick="switchTab('admins')" class="tab-btn" id="tab-admins">
             <i class="fas fa-user-shield"></i> <?= $lang == 'ar' ? 'المسؤولون' : 'Administrators' ?>
+        </button>
+        <button onclick="switchTab('requests')" class="tab-btn" id="tab-requests">
+            <i class="fas fa-envelope-open-text"></i> <?= $lang == 'ar' ? 'الطلبات' : 'Requests' ?>
+            <?php if(count($requests) > 0): ?>
+                <span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 5px;"><?= count($requests) ?></span>
+            <?php endif; ?>
         </button>
     </div>
 
@@ -362,6 +394,52 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
                     </td>
                 </tr>
                 <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Requests Tab -->
+    <div id="content-requests" class="user-tab-content">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th><?= $lang == 'ar' ? 'المستخدم' : 'User' ?></th>
+                    <th><?= $lang == 'ar' ? 'الدور' : 'Role' ?></th>
+                    <th><?= $lang == 'ar' ? 'سبب الطلب' : 'Reason' ?></th>
+                    <th><?= $lang == 'ar' ? 'تاريخ الطلب' : 'Requested At' ?></th>
+                    <th style="text-align: right;"><?= $lang == 'ar' ? 'الإجراءات' : 'Actions' ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if(empty($requests)): ?>
+                    <tr><td colspan="5" style="text-align: center; padding: 30px; color: #94a3b8;"><?= $lang == 'ar' ? 'لا توجد طلبات معلقة.' : 'No pending requests.' ?></td></tr>
+                <?php else: ?>
+                    <?php foreach($requests as $req): ?>
+                    <tr class="user-row">
+                        <td>
+                            <div style="font-weight: 600; color: #1e293b;"><?= htmlspecialchars($req['name']) ?></div>
+                            <div style="font-size: 12px; color: #64748b;"><?= htmlspecialchars($req['email']) ?></div>
+                        </td>
+                        <td>
+                            <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; text-transform: uppercase; font-size: 11px;">
+                                <?= htmlspecialchars($req['role']) ?>
+                            </span>
+                        </td>
+                        <td style="color: #475569; font-size: 13px; max-width: 300px; word-wrap: break-word;">
+                            <?= nl2br(htmlspecialchars($req['reason'])) ?>
+                        </td>
+                        <td style="font-size: 13px; color: #94a3b8;"><?= date('M d, Y H:i', strtotime($req['created_at'])) ?></td>
+                        <td style="text-align: right;">
+                            <button onclick="confirmAction(event, '<?= $lang == 'ar' ? 'الموافقة على إعادة تعيين كلمة المرور؟' : 'Approve password reset?' ?>', '?action=approve_req&req_id=<?= $req['id'] ?>&user_id=<?= $req['user_id'] ?>')" class="action-icon-btn" title="<?= $lang == 'ar' ? 'موافقة' : 'Approve' ?>">
+                                <i class="fas fa-check-circle" style="color: #10b981; font-size: 18px;"></i>
+                            </button>
+                            <button onclick="confirmAction(event, '<?= $lang == 'ar' ? 'رفض الطلب؟' : 'Reject request?' ?>', '?action=reject_req&req_id=<?= $req['id'] ?>')" class="action-icon-btn" title="<?= $lang == 'ar' ? 'رفض' : 'Reject' ?>">
+                                <i class="fas fa-times-circle" style="color: #ef4444; font-size: 18px;"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

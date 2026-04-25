@@ -8,6 +8,7 @@ CREATE TABLE users (
     personal_email VARCHAR(100) NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+    password_changed TINYINT(1) DEFAULT 0,
     role ENUM('student','teacher','admin') NOT NULL,
     is_active INT DEFAULT 0,
     verification_code VARCHAR(10),
@@ -153,4 +154,13 @@ CREATE TABLE exams (
 CREATE TABLE system_settings (
     setting_key VARCHAR(50) PRIMARY KEY,
     setting_value VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE password_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    reason TEXT NOT NULL,
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
