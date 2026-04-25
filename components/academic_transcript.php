@@ -38,8 +38,8 @@ function getAppreciation($grade) {
 
 <div class="card-container">
     <div class="page-actions" style="margin-bottom: 20px;">
-        <h2 class="page-title">Official Academic Transcript</h2>
-        <button onclick="window.print()" class="logout-btn" style="background: #0A2B8E; color: white; border: none; box-shadow: none;">Download PDF</button>
+        <h2 class="page-title"><?= $lang == 'ar' ? 'كشف النقاط الرسمي' : 'Official Transcript' ?></h2>
+        <button onclick="window.print()" class="logout-btn" style="background: #0A2B8E; color: white; border: none; box-shadow: none;"><?= $lang == 'ar' ? 'تحميل PDF' : 'Download PDF' ?></button>
     </div>
     
     <table class="data-table">
@@ -59,7 +59,7 @@ function getAppreciation($grade) {
         </thead>
         <tbody>
             <?php if(empty($transcript)): ?>
-            <tr><td colspan="10">No modules assigned yet.</td></tr>
+            <tr><td colspan="10"><?= $lang == 'ar' ? 'لا توجد مقاييس مسندة بعد.' : 'No modules assigned yet.' ?></td></tr>
             <?php else: ?>
                 <?php 
                     $total_credits = 0;
@@ -115,7 +115,7 @@ function getAppreciation($grade) {
                 <tr>
                     <td>
                         <span class="badge badge-info"><?= htmlspecialchars($t['code']) ?></span>
-                        <?php if($t['is_dette']): ?><br><span class="badge badge-danger" style="margin-top: 5px;">DETTE</span><?php endif; ?>
+                        <?php if($t['is_dette']): ?><br><span class="badge badge-danger" style="margin-top: 5px;"><?= $lang == 'ar' ? 'دَيْن' : 'Debt' ?></span><?php endif; ?>
                     </td>
                     <td><strong><?= htmlspecialchars($t['name']) ?></strong></td>
                     <td style="text-align: center;"><strong><?= htmlspecialchars($coef) ?></strong></td>
@@ -138,25 +138,25 @@ function getAppreciation($grade) {
         </tbody>
     </table>
 
-    <?php if($total_coef > 0): 
-        $moyenne_generale = $total_notes_coef / $total_coef;
-        if ($moyenne_generale >= 10) {
-            $acquired_credits = $total_credits; // By compensation rule
+    <?php if($total_coef > 0):
+        $overall_avg = $total_notes_coef / $total_coef;
+        if ($overall_avg >= 10) {
+            $acquired_credits = $total_credits;
         }
     ?>
     <div class="info-panel-blue" style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <p class="stat-label">Acquired Credits</p>
+            <p class="stat-label"><?= $lang == 'ar' ? 'الأرصدة المكتسبة' : 'Acquired Credits' ?></p>
             <h2 class="stat-value" style="font-size: 28px; <?= $acquired_credits == $total_credits ? 'color: #2ecc71;' : '' ?>"><?= $acquired_credits ?> / <?= $total_credits ?></h2>
         </div>
         <div style="text-align: center;">
-            <p class="stat-label">Overall Average</p>
-            <h2 class="stat-value" style="font-size: 32px;"><?= number_format($moyenne_generale, 2) ?> / 20</h2>
+            <p class="stat-label"><?= $lang == 'ar' ? 'المعدل العام' : 'Overall Average' ?></p>
+            <h2 class="stat-value" style="font-size: 32px;"><?= number_format($overall_avg, 2) ?> / 20</h2>
         </div>
         <div style="text-align: right;">
-            <p class="stat-label">Final Result</p>
-            <h3 style="margin: 0; font-size: 24px; color: <?= $moyenne_generale >= 10 ? '#2ecc71' : '#e74c3c' ?>;">
-                <?= $moyenne_generale >= 10 ? 'Admitted' : 'Failed' ?>
+            <p class="stat-label"><?= $lang == 'ar' ? 'النتيجة النهائية' : 'Final Result' ?></p>
+            <h3 style="margin: 0; font-size: 24px; color: <?= $overall_avg >= 10 ? '#2ecc71' : '#e74c3c' ?>;">
+                <?= $overall_avg >= 10 ? ($lang == 'ar' ? 'مقبول' : 'Admitted') : ($lang == 'ar' ? 'راسب' : 'Failed') ?>
             </h3>
         </div>
     </div>

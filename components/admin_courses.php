@@ -72,144 +72,201 @@ $active_assignments = $pdo->query("
 ?>
 
 <div class="card-container">
-    <div class="page-actions">
-        <h2 class="page-title">Module Management</h2>
-        <button onclick="document.getElementById('add-curr-form').style.display='block'" class="btn-primary">+ New Module</button>
-    </div>
+        <div class="page-actions" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px;">
+            <div>
+                <h2 class="page-title" style="margin: 0; color: #1e293b; font-size: 24px;"><?= $lang == 'ar' ? 'المقاييس والأساتذة' : 'Modules & Faculty' ?></h2>
+            </div>
+            <button onclick="document.getElementById('add-curr-form').style.display='block'" class="btn-primary" style="background: #0A2B8E; display: flex; align-items: center; gap: 8px; padding: 10px 20px;">
+                <i class="fas fa-plus-circle"></i> <?= $lang == 'ar' ? 'إضافة' : 'Add' ?>
+            </button>
+        </div>
     
-    <div id="add-curr-form" style="display: none; background: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
-        <h4 style="margin-bottom: 15px; color:#2d3748;">Add New Module</h4>
+    <!-- Add Module Form (Refined) -->
+    <div id="add-curr-form" style="display: none; background: #ffffff; padding: 30px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h4 style="margin: 0; color:#1e293b; font-size: 18px;"><?= $lang == 'ar' ? 'مقياس جديد' : 'New Module' ?></h4>
+            <button onclick="document.getElementById('add-curr-form').style.display='none'" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:20px;">&times;</button>
+        </div>
         <form method="POST" class="form-grid">
-            <input type="text" name="c_name" class="form-input" placeholder="Module Name" required>
-            <input type="text" name="c_code" class="form-input" placeholder="Code (e.g. CS101)" required>
-            <input type="number" name="c_credits" class="form-input" placeholder="Credits" required>
-            <input type="number" name="c_coef" class="form-input" placeholder="Coefficient" required>
-            <select name="c_spec" class="form-input" required>
-                <?php foreach($specialities as $s): ?>
-                    <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name']) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <select name="c_year" class="form-input" required>
-                <?php foreach($years as $y): ?>
-                    <option value="<?= $y['id'] ?>"><?= htmlspecialchars($y['name']) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <select name="c_sem" class="form-input" required>
-                <option value="S1">Semester 1 (S1)</option>
-                <option value="S2">Semester 2 (S2)</option>
-            </select>
-            <button type="submit" class="btn-primary" style="width: 100%; grid-column: span 2;">Save Module</button>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['module_name'] ?? ($lang == 'ar' ? 'اسم الوحدة' : 'Module Name') ?></label>
+                <input type="text" name="c_name" class="form-input" placeholder="e.g. Data Structures" required>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'رمز المقرر' : 'Course Code' ?></label>
+                <input type="text" name="c_code" class="form-input" placeholder="e.g. CS101" required>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['credits'] ?></label>
+                <input type="number" name="c_credits" class="form-input" placeholder="6" required>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['coefficient'] ?></label>
+                <input type="number" name="c_coef" class="form-input" placeholder="3" required>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'التخصص' : 'Speciality' ?></label>
+                <select name="c_spec" class="form-input" required>
+                    <?php foreach($specialities as $s): ?>
+                        <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'السنة الأكاديمية' : 'Academic Year' ?></label>
+                <select name="c_year" class="form-input" required>
+                    <?php foreach($years as $y): ?>
+                        <option value="<?= $y['id'] ?>"><?= htmlspecialchars($y['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['semester'] ?></label>
+                <select name="c_sem" class="form-input" required>
+                    <option value="S1"><?= $lang == 'ar' ? 'السداسي 1 (S1)' : 'Semester 1 (S1)' ?></option>
+                    <option value="S2"><?= $lang == 'ar' ? 'السداسي 2 (S2)' : 'Semester 2 (S2)' ?></option>
+                </select>
+            </div>
+            <div style="grid-column: span 3; margin-top: 10px;">
+                <button type="submit" class="btn-primary" style="width: 200px; background: #059669;"><?= $lang == 'ar' ? 'تأكيد' : 'Confirm' ?></button>
+            </div>
         </form>
     </div>
 
-    <div style="background: #eef2ff; padding: 25px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #c3dafe;">
-        <h4 style="margin-bottom: 15px; color:#1e429f;">Bulk Assign Teacher to Sections</h4>
+    <!-- Assignments Section (Formal Card) -->
+    <div style="background: #f8fafc; padding: 30px; border-radius: 12px; margin-bottom: 40px; border: 1px solid #e2e8f0; border-left: 5px solid #3b82f6;">
+        <h4 style="margin: 0 0 10px 0; color:#1e293b; font-size: 18px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-link" style="color: #3b82f6;"></i> <?= $lang == 'ar' ? 'تعيين الأساتذة' : 'Faculty Assignment' ?>
+        </h4>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;"><?= $lang == 'ar' ? 'ربط موظف تعليمي بعدة دفعات لوحدة معينة.' : 'Link a teaching staff member to multiple sections for a specific module.' ?></p>
+        
         <form method="POST" class="form-grid">
             <input type="hidden" name="assign_teacher" value="1">
-            <div style="grid-column: span 1;">
-                <label style="display:block; margin-bottom:8px; font-weight:600; color:#4a5568;">1. Select Teacher</label>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="font-size: 13px; font-weight: 600; color:#475569;">1. <?= $lang == 'ar' ? 'الطاقم التعليمي' : 'Teaching Staff' ?></label>
                 <select name="teacher_id" class="form-input" required>
-                    <option value="">Select...</option>
+                    <option value=""><?= $lang == 'ar' ? 'اختر الموظف...' : 'Select Personnel...' ?></option>
                     <?php foreach($teachers as $t): ?>
                         <option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div style="grid-column: span 1;">
-                <label style="display:block; margin-bottom:8px; font-weight:600; color:#4a5568;">2. Select Module</label>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="font-size: 13px; font-weight: 600; color:#475569;">2. <?= $lang == 'ar' ? 'الوحدة المستهدفة' : 'Target Module' ?></label>
                 <select name="course_id" class="form-input" required>
-                    <option value="">Select...</option>
+                    <option value=""><?= $lang == 'ar' ? 'اختر الوحدة...' : 'Select Module...' ?></option>
                     <?php foreach($courses as $c): ?>
                         <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?> (<?= $c['code'] ?>)</option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <div style="grid-column: span 2; margin-top: 15px;">
-                <label style="display:block; margin-bottom:12px; font-weight:600; color:#4a5568;">3. Target Sections (Multiple Choice)</label>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-height: 150px; overflow-y: auto; background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <label style="display:block; margin-bottom:12px; font-weight:600; color:#475569;">3. <?= $lang == 'ar' ? 'المهام الأكاديمية' : 'Academic Sections' ?></label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; max-height: 180px; overflow-y: auto; background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
                     <?php foreach($sections as $s): ?>
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-                            <input type="checkbox" name="section_ids[]" value="<?= $s['id'] ?>"> <?= htmlspecialchars($s['name']) ?>
+                        <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; color: #334155; padding: 5px; border-radius: 4px; transition: background 0.2s;">
+                            <input type="checkbox" name="section_ids[]" value="<?= $s['id'] ?>" style="width: 16px; height: 16px;"> <?= htmlspecialchars($s['name']) ?>
                         </label>
                     <?php endforeach; ?>
                 </div>
             </div>
-            <button type="submit" class="btn-primary" style="width: 100%; grid-column: span 2; margin-top: 20px;">Assign to Selected Sections</button>
+            <div style="grid-column: span 2; margin-top: 15px;">
+                <button type="submit" class="btn-primary" style="width: 250px; background: #0A2B8E;"><?= $lang == 'ar' ? 'تصريح التعيينات' : 'Authorize Assignments' ?></button>
+            </div>
         </form>
     </div>
 
-    <p class="helper-text">Manage the module catalog, coefficients, and responsible teachers.</p>
+    <!-- Module Catalog -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="color: #1e293b; margin: 0; font-size: 20px;"><?= $lang == 'ar' ? 'دليل الوحدات الرسمي' : 'Official Module Catalog' ?></h3>
+    </div>
     
     <table class="data-table">
         <thead>
             <tr>
-                <th>Code</th>
-                <th>Title</th>
-                <th>Coef</th>
-                <th>Credits</th>
-                <th>Semester</th>
-                <th>Responsible</th>
-                <th style="text-align: right;">Actions</th>
+                <th><?= $lang == 'ar' ? 'الرمز' : 'Code' ?></th>
+                <th><?= $lang == 'ar' ? 'الوحدة المؤسسية' : 'Institutional Module' ?></th>
+                <th><?= $lang == 'ar' ? 'الإحصائيات' : 'Stats' ?></th>
+                <th><?= $lang == 'ar' ? 'الطاقم' : 'Staff' ?></th>
+                <th style="text-align: right;"><?= $lang == 'ar' ? 'العمليات' : 'Operations' ?></th>
             </tr>
         </thead>
         <tbody>
             <?php foreach($courses as $c): ?>
             <tr>
-                <td><span class="badge badge-info"><?= htmlspecialchars($c['code']) ?></span></td>
-                <td><strong><?= htmlspecialchars($c['name']) ?></strong></td>
-                <td style="text-align: center;"><?= htmlspecialchars($c['coefficient']) ?></td>
-                <td><?= htmlspecialchars($c['credits']) ?> Cr</td>
-                <td><?= htmlspecialchars($c['semester']) ?></td>
-                <td><span style="font-size: 14px; font-weight: 500; color: #4a5568;"><?= htmlspecialchars($c['teacher_names'] ?? 'None') ?></span></td>
-                <td style="display:flex; gap:10px; justify-content:flex-end; align-items: center; border-bottom: none; border-top: none;">
-                    <button onclick='openEditModModal(<?= json_encode($c) ?>)' style="background:none; border:none; color:#4a90e2; font-weight:bold; cursor:pointer; font-size:13px;">Edit</button>
-                    <form method="POST" onsubmit="return confirm('Delete this module completely? This will also unassign all teachers and delete associated grades!');" style="margin:0;">
-                        <input type="hidden" name="delete_course_id" value="<?= $c['id'] ?>">
-                        <button type="submit" style="background:none; border:none; color:#e53e3e; font-weight:bold; cursor:pointer; font-size:13px;">Delete</button>
-                    </form>
+                <td><span style="font-family: monospace; color: #0A2B8E; font-weight: 700; background: #eff6ff; padding: 4px 10px; border-radius: 4px; border: 1px solid #dbeafe;"><?= htmlspecialchars($c['code']) ?></span></td>
+                <td>
+                    <div style="font-weight: 600; color: #1e293b;"><?= htmlspecialchars($c['name']) ?></div>
+                    <div style="font-size: 12px; color: #94a3b8;"><?= htmlspecialchars($c['speciality_name']) ?> &bull; <?= htmlspecialchars($c['year_name']) ?></div>
+                </td>
+                <td>
+                    <div style="font-size: 13px; color: #475569;">
+                        <strong><?= htmlspecialchars($c['coefficient']) ?></strong> <?= $lang == 'ar' ? 'معامل' : 'Coef' ?> &bull; 
+                        <strong><?= htmlspecialchars($c['credits']) ?></strong> <?= $lang == 'ar' ? 'رصيد' : 'Credits' ?>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size: 13px; color: #64748b; font-style: italic;">
+                        <i class="fas fa-user-tie" style="margin-right: 5px; color: #94a3b8;"></i>
+                        <?= htmlspecialchars($c['teacher_names'] ?? ($lang == 'ar' ? 'لم يتم تعيين طاقم' : 'No Staff Assigned')) ?>
+                    </div>
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                        <button onclick='openEditModModal(<?= json_encode($c) ?>)' style="background:none; border:none; color:#3b82f6; font-weight:600; cursor:pointer; font-size:14px; display: flex; align-items: center; gap: 5px;">
+                            <i class="fas fa-edit"></i> <?= $lang == 'ar' ? 'تعديل' : 'Edit' ?>
+                        </button>
+                        <form method="POST" onsubmit="return confirm('<?= $lang == 'ar' ? 'تحذير: سيؤدي حذف هذه الوحدة إلى إزالة جميع العلامات والمهام المرتبطة بها نهائياً. هل ترغب في الاستمرار؟' : 'WARNING: Deleting this module will PERMANENTLY remove all associated grades and assignments. Proceed?' ?>');" style="margin:0;">
+                            <input type="hidden" name="delete_course_id" value="<?= $c['id'] ?>">
+                            <button type="submit" style="background:none; border:none; color:#ef4444; font-weight:600; cursor:pointer; font-size:14px; display: flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-trash-alt"></i> <?= $lang == 'ar' ? 'تطهير' : 'Purge' ?>
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
 
-    <h2 style="color: #0A2B8E; margin: 40px 0 20px 0;">Active Teacher Assignments</h2>
-    <div style="background: #e1effe; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #0A2B8E;">
-        <p style="margin:0; font-size: 14px; color: #0A2B8E;"><strong>Note:</strong> Assignments are grouped by section. Removing an assignment will revoke the teacher's access to all groups within that section for the selected module.</p>
-    </div>
-
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Teacher</th>
-                <th>Module</th>
-                <th>Target Section</th>
-                <th style="text-align: right;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($active_assignments)): ?>
-                <tr><td colspan="4">No active teacher-module pairings found.</td></tr>
-            <?php else: ?>
-                <?php foreach($active_assignments as $aa): ?>
+    <div style="margin-top: 50px;">
+        <h3 style="color: #1e293b; margin-bottom: 20px; font-size: 20px; border-bottom: 2px solid #0A2B8E; display: inline-block; padding-bottom: 5px;"><?= $lang == 'ar' ? 'تعيينات الطاقم النشطة' : 'Active Staff Assignments' ?></h3>
+        <table class="data-table">
+            <thead>
                 <tr>
-                    <td><strong><?= htmlspecialchars($aa['teacher_name']) ?></strong></td>
-                    <td><?= htmlspecialchars($aa['course_name']) ?></td>
-                    <td><span class="badge badge-info"><?= htmlspecialchars($aa['section_name']) ?></span></td>
-                    <td style="text-align: right;">
-                        <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to remove this teacher from this section?');">
-                            <input type="hidden" name="delete_assignment" value="1">
-                            <input type="hidden" name="teacher_id" value="<?= $aa['teacher_id'] ?>">
-                            <input type="hidden" name="course_id" value="<?= $aa['course_id'] ?>">
-                            <input type="hidden" name="section_id" value="<?= $aa['section_id'] ?>">
-                            <button type="submit" style="background:none; border:none; color:#e53e3e; font-weight:600; cursor:pointer; font-size:13px;">Remove Assignment</button>
-                        </form>
-                    </td>
+                    <th><?= $lang == 'ar' ? 'الطاقم الأكاديمي' : 'Academic Staff' ?></th>
+                    <th><?= $lang == 'ar' ? 'عنوان الوحدة' : 'Module Title' ?></th>
+                    <th><?= $lang == 'ar' ? 'الدفعة المستهدفة' : 'Target Section' ?></th>
+                    <th style="text-align: right;"><?= $lang == 'ar' ? 'إلغاء' : 'Revoke' ?></th>
                 </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <?php if (empty($active_assignments)): ?>
+                    <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 40px;"><?= $lang == 'ar' ? 'لم يتم العثور على تعيينات هيئة التدريس في الدليل الحالي.' : 'No faculty mappings found in the current directory.' ?></td></tr>
+                <?php else: ?>
+                    <?php foreach($active_assignments as $aa): ?>
+                    <tr>
+                        <td><strong><?= htmlspecialchars($aa['teacher_name']) ?></strong></td>
+                        <td><?= htmlspecialchars($aa['course_name']) ?></td>
+                        <td><span class="badge badge-info" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;"><?= htmlspecialchars($aa['section_name']) ?></span></td>
+                        <td style="text-align: right;">
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('<?= $lang == 'ar' ? 'إلغاء وصول عضو هيئة التدريس هذا إلى الدفعة المختارة؟' : 'Revoke this staff member\'s access to the selected section?' ?>');">
+                                <input type="hidden" name="delete_assignment" value="1">
+                                <input type="hidden" name="teacher_id" value="<?= $aa['teacher_id'] ?>">
+                                <input type="hidden" name="course_id" value="<?= $aa['course_id'] ?>">
+                                <input type="hidden" name="section_id" value="<?= $aa['section_id'] ?>">
+                                <button type="submit" style="background:none; border:none; color:#ef4444; font-weight:600; cursor:pointer; font-size:13px; display: flex; align-items: center; gap: 5px; justify-content: flex-end;">
+                                    <i class="fas fa-unlink"></i> <?= $lang == 'ar' ? 'إلغاء' : 'Revoke' ?>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 </div>
 
 <div id="edit-mod-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center;">

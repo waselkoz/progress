@@ -70,7 +70,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['grades'])) {
         
         $stmt->execute([$student_id, $class_info['course_id'], $exam, $td, $tp, $final_grade, $rattrapage, $is_dette, $comment]);
     }
-    echo "<script>window.onload = () => showToast('Grades successfully record for all components!');</script>";
+    echo "<script>window.onload = () => showToast('" . ($lang == 'ar' ? 'تم حفظ العلامات بنجاح.' : 'Grades saved successfully.') . "');</script>";
 }
 
 
@@ -91,48 +91,83 @@ $resit_open = $stmtR->fetchColumn() == '1';
 ?>
 
 <div class="card-container">
-    <div class="page-actions">
-        <div>
-            <h2 class="page-title">Input Grades: <?= htmlspecialchars($class_info['name']) ?></h2>
-            <p class="helper-text" style="margin-bottom: 0;">Class Roster: <?= htmlspecialchars($class_info['sec_name']) ?> - <?= htmlspecialchars($class_info['grp_name']) ?></p>
+    <div class="page-actions" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="background: #eff6ff; color: #3b82f6; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <div>
+                <h2 class="page-title" style="margin: 0; color: #1e293b; font-size: 22px;"><?= $lang == 'ar' ? 'ملف التقييم: ' : 'Evaluation Dossier: ' ?><?= htmlspecialchars($class_info['name']) ?></h2>
+                <p style="color: #64748b; font-size: 13px; margin-top: 4px;">
+                    <i class="fas fa-users" style="margin-right: 5px;"></i> <?= htmlspecialchars($class_info['sec_name']) ?> &bull; <?= htmlspecialchars($class_info['grp_name']) ?>
+                </p>
+            </div>
         </div>
-        <a href="teacher_grades.php" class="back-link">&larr; Back to Classes</a>
+        <a href="teacher_grades.php" class="btn-primary" style="background: #ffffff; color: #475569; border: 1px solid #e2e8f0; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-arrow-left"></i> <?= $lang == 'ar' ? 'العودة للقائمة' : 'Back to Roster' ?>
+        </a>
     </div>
+
+    <?php if (!$grading_open): ?>
+        <div style="background: #fff1f2; border: 1px solid #ffe4e6; color: #be123c; padding: 15px 20px; border-radius: 10px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i>
+            <div style="font-size: 14px; font-weight: 500;">
+                <?= $lang == 'ar' ? 'نظام رصد العلامات المركزي <strong>مغلق</strong> حالياً. التعديلات غير مسموح بها في الوقت الحالي.' : 'The central grading system is currently <strong>LOCKED</strong>. Modifications are prohibited at this time.' ?>
+            </div>
+        </div>
+    <?php elseif (!$resit_open): ?>
+        <div style="background: #fefce8; border: 1px solid #fef08a; color: #854d0e; padding: 15px 20px; border-radius: 10px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
+            <i class="fas fa-info-circle" style="font-size: 18px;"></i>
+            <div style="font-size: 14px; font-weight: 500;">
+                <?= $lang == 'ar' ? 'وحدة <strong>الاستدراك</strong> مغلقة حالياً. علامات الدورة العادية تبقى مفتوحة للرصد.' : 'The <strong>Resit</strong> window is currently closed. Main session grades remain open.' ?>
+            </div>
+        </div>
+    <?php endif; ?>
     
     <form method="POST">
-        <table class="data-table">
-            <thead>
+        <table class="data-table" style="box-shadow: none; border: 1px solid #f1f5f9;">
+            <thead style="background: #f8fafc;">
                 <tr>
-                    <th>Student Name</th>
-                    <th>Exam (60%)</th>
-                    <th>TD</th>
-                    <th>TP</th>
-                    <th>Resit (Rattrapage)</th>
+                    <th style="padding: 15px 20px; width: 300px;"><?= $lang == 'ar' ? 'معلومات الطالب' : 'Student Information' ?></th>
+                    <th style="text-align: center; width: 150px;"><?= $lang == 'ar' ? 'الامتحان الرئيسي (60%)' : 'Main Exam (60%)' ?></th>
+                    <th style="text-align: center; width: 120px;"><?= $lang == 'ar' ? 'علامة الأعمال الموجهة' : 'TD Mark' ?></th>
+                    <th style="text-align: center; width: 120px;"><?= $lang == 'ar' ? 'علامة الأعمال التطبيقية' : 'TP Mark' ?></th>
+                    <th style="text-align: center; width: 150px;"><?= $lang == 'ar' ? 'الاستدراك' : 'Resit' ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if(empty($students)): ?>
-                <tr><td colspan="6">No students enrolled in this group.</td></tr>
+                <tr><td colspan="5" style="text-align: center; padding: 50px; color: #94a3b8;"><?= $lang == 'ar' ? 'لا يوجد طلاب مسجلون في هذا الفوج.' : 'No students found in this group.' ?></td></tr>
                 <?php else: ?>
                     <?php foreach($students as $s): ?>
-                    <tr>
-                        <td><strong><?= htmlspecialchars($s['name']) ?></strong><br><em style="color:#888; font-size:11px;"><?= htmlspecialchars($s['student_number']) ?></em></td>
-                        <td>
-                            <input type="number" step="0.01" min="0" max="20" class="form-input" style="padding:8px; margin:0; <?= !$grading_open ? 'opacity:0.6; cursor:not-allowed;' : '' ?>"
-                                   name="grades[<?= $s['id'] ?>][grade]" value="<?= htmlspecialchars($s['grade'] ?? '') ?>" placeholder="<?= $grading_open ? '-' : 'LOCKED' ?>" <?= $grading_open ? '' : 'readonly' ?>>
+                    <tr class="user-row">
+                        <td style="padding: 15px 20px;">
+                            <div style="font-weight: 600; color: #1e293b;"><?= htmlspecialchars($s['name']) ?></div>
+                            <div style="font-size: 11px; font-family: monospace; color: #64748b; margin-top: 2px;"><?= htmlspecialchars($s['student_number']) ?></div>
                         </td>
-                        <td>
-                            <input type="number" step="0.01" min="0" max="20" class="form-input" style="padding:8px; margin:0; background: #f0f7ff; <?= !$grading_open ? 'opacity:0.6; cursor:not-allowed;' : '' ?>"
-                                   name="grades[<?= $s['id'] ?>][td]" value="<?= htmlspecialchars($s['td_grade'] ?? '') ?>" placeholder="<?= $grading_open ? '-' : 'LOCKED' ?>" <?= $grading_open ? '' : 'readonly' ?>>
+                        <td style="text-align: center;">
+                            <input type="number" step="0.01" min="0" max="20" class="form-input" 
+                                   style="text-align: center; max-width: 100px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 600; <?= !$grading_open ? 'background: #f1f5f9; cursor: not-allowed; color: #94a3b8;' : '' ?>"
+                                   name="grades[<?= $s['id'] ?>][grade]" value="<?= htmlspecialchars($s['grade'] ?? '') ?>" 
+                                   <?= $grading_open ? '' : 'readonly' ?>>
                         </td>
-                        <td>
-                            <input type="number" step="0.01" min="0" max="20" class="form-input" style="padding:8px; margin:0; background: #f0fff4; <?= !$grading_open ? 'opacity:0.6; cursor:not-allowed;' : '' ?>"
-                                   name="grades[<?= $s['id'] ?>][tp]" value="<?= htmlspecialchars($s['tp_grade'] ?? '') ?>" placeholder="<?= $grading_open ? '-' : 'LOCKED' ?>" <?= $grading_open ? '' : 'readonly' ?>>
+                        <td style="text-align: center;">
+                            <input type="number" step="0.01" min="0" max="20" class="form-input" 
+                                   style="text-align: center; max-width: 90px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f0f7ff; font-weight: 500; <?= !$grading_open ? 'background: #f1f5f9; cursor: not-allowed; color: #94a3b8;' : '' ?>"
+                                   name="grades[<?= $s['id'] ?>][td]" value="<?= htmlspecialchars($s['td_grade'] ?? '') ?>" 
+                                   <?= $grading_open ? '' : 'readonly' ?>>
                         </td>
-                        <td>
-                            <input type="number" step="0.01" min="0" max="20" class="form-input" style="padding:8px; margin:0; background: #fff5f5; <?= (!$grading_open || !$resit_open) ? 'opacity:0.6; cursor:not-allowed;' : '' ?>"
+                        <td style="text-align: center;">
+                            <input type="number" step="0.01" min="0" max="20" class="form-input" 
+                                   style="text-align: center; max-width: 90px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f0fff4; font-weight: 500; <?= !$grading_open ? 'background: #f1f5f9; cursor: not-allowed; color: #94a3b8;' : '' ?>"
+                                   name="grades[<?= $s['id'] ?>][tp]" value="<?= htmlspecialchars($s['tp_grade'] ?? '') ?>" 
+                                   <?= $grading_open ? '' : 'readonly' ?>>
+                        </td>
+                        <td style="text-align: center;">
+                            <input type="number" step="0.01" min="0" max="20" class="form-input" 
+                                   style="text-align: center; max-width: 100px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff5f5; font-weight: 700; color: #dc2626; <?= (!$grading_open || !$resit_open) ? 'background: #f1f5f9; cursor: not-allowed; color: #94a3b8;' : '' ?>"
                                    name="grades[<?= $s['id'] ?>][rattrapage]" value="<?= htmlspecialchars($s['rattrapage_grade'] ?? '') ?>" 
-                                   placeholder="<?= ($grading_open && $resit_open) ? '-' : 'LOCKED' ?>" <?= ($grading_open && $resit_open) ? '' : 'readonly' ?>>
+                                   <?= ($grading_open && $resit_open) ? '' : 'readonly' ?>>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -141,14 +176,13 @@ $resit_open = $stmtR->fetchColumn() == '1';
         </table>
         
         <?php if(!empty($students) && $grading_open): ?>
-        <div style="margin-top: 25px; text-align: right;">
-            <button type="submit" class="btn-primary" style="padding: 14px 40px; font-size: 16px; background: #0A2B8E; border: none;">
-                Save All Official Grades
+        <div style="margin-top: 40px; display: flex; justify-content: flex-end; align-items: center; gap: 20px;">
+            <div style="color: #64748b; font-size: 13px; font-style: italic;">
+                <i class="fas fa-info-circle"></i> <?= $lang == 'ar' ? 'ستكون العلامات مرئية للطلاب فور اعتمادها.' : 'Grades will be immediately visible to students upon submission.' ?>
+            </div>
+            <button type="submit" class="btn-primary" style="padding: 14px 45px; font-size: 16px; background: #0A2B8E; box-shadow: 0 4px 6px -1px rgba(10, 43, 142, 0.2);">
+                <i class="fas fa-save" style="margin-right: 10px;"></i> <?= $lang == 'ar' ? 'اعتماد العلامات الرسمية' : 'Commit Official Grades' ?>
             </button>
-        </div>
-        <?php elseif (!empty($students) && !$grading_open): ?>
-        <div style="margin-top: 25px; text-align: right; color: #e53e3e; font-weight: 600;">
-            <p>Grading is currently locked by the Administration.</p>
         </div>
         <?php endif; ?>
     </form>

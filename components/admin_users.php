@@ -1,5 +1,4 @@
 <?php include 'layout_header.php'; 
-require_once dirname(__DIR__) . '/config/email_service.php';
 if(($_SESSION['user_role'] ?? '') !== 'admin') die("Access Denied.");
 
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['new_name'])) {
@@ -55,7 +54,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['approve_user_id'])) {
         if($user) {
             $pdo->prepare("UPDATE users SET email = ?, is_active = 1 WHERE id = ?")->execute([$official_email, $uid]);
             $pdo->prepare("UPDATE student SET section_id = ?, group_id = ? WHERE user_id = ?")->execute([$sid, $gid, $uid]);
-            EmailService::sendActivationEmail($user['personal_email'], $user['name'], $official_email);
             echo "<script>window.onload = () => showToast('Approved and assigned to track!');</script>";
         }
     }
@@ -109,186 +107,286 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
 ?>
 
 <div class="card-container">
-    <div class="page-actions">
-        <h2 class="page-title">User Management</h2>
-        <button onclick="document.getElementById('add-user-form').style.display='block'" class="logout-btn" style="background: #0A2B8E; color: white; border: none; box-shadow: none; cursor: pointer;">+ Add User</button>
-    </div>
+        <div class="page-actions" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px;">
+            <div>
+                <h2 class="page-title" style="margin: 0; color: #1e293b; font-size: 24px;"><?= $lang == 'ar' ? 'المستخدمين' : 'Users' ?></h2>
+            </div>
+            <button onclick="document.getElementById('add-user-form').style.display='block'" class="btn-primary" style="background: #0A2B8E; display: flex; align-items: center; gap: 8px; padding: 10px 20px;">
+                <i class="fas fa-user-plus"></i> <?= $lang == 'ar' ? 'إضافة' : 'Add' ?>
+            </button>
+        </div>
     
-    <div id="add-user-form" style="display: none; background: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
-        <h4 style="margin-bottom: 15px; color:#2d3748;">Register New User</h4>
+    <!-- Add User Form (Refined) -->
+    <div id="add-user-form" style="display: none; background: #ffffff; padding: 30px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h4 style="margin: 0; color:#1e293b; font-size: 18px;"><?= $lang == 'ar' ? 'مستخدم جديد' : 'New User' ?></h4>
+            <button onclick="document.getElementById('add-user-form').style.display='none'" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:20px;">&times;</button>
+        </div>
         <form method="POST" class="form-grid">
-            <input type="text" name="new_name" class="form-input" placeholder="Full Name" required>
-            <input type="email" name="new_email" class="form-input" placeholder="Email Address" required>
-            
-            <select name="new_role" id="role-select" class="form-input" required onchange="toggleStudentFields(this.value)">
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Administrator</option>
-            </select>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['full_name'] ?></label>
+                <input type="text" name="new_name" class="form-input" placeholder="e.g. John Doe" required>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['email_addr'] ?></label>
+                <input type="email" name="new_email" class="form-input" placeholder="e.g. name@usthb.dz" required>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'الدور في النظام' : 'System Role' ?></label>
+                <select name="new_role" id="role-select" class="form-input" required onchange="toggleStudentFields(this.value)">
+                    <option value="student"><?= $lang == 'ar' ? 'طالب' : 'Student' ?></option>
+                    <option value="teacher"><?= $lang == 'ar' ? 'أستاذ' : 'Teacher' ?></option>
+                    <option value="admin"><?= $lang == 'ar' ? 'مسؤول' : 'Administrator' ?></option>
+                </select>
+            </div>
 
             <div id="student-only-fields" style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <input type="text" name="student_number" class="form-input" placeholder="Student ID" value="<?= $suggested_stu ?>">
-                <input type="date" name="birth_date" class="form-input" title="Date of Birth">
-                <input type="number" name="enroll_year" class="form-input" placeholder="Enrollment Year" value="<?= date('Y') ?>">
-                <select name="section_id" class="form-input">
-                    <?php foreach($sections as $sec): ?>
-                        <option value="<?= $sec['id'] ?>"><?= htmlspecialchars($sec['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <select name="group_id" class="form-input">
-                    <?php foreach($groups as $grp): ?>
-                        <option value="<?= $grp['id'] ?>"><?= htmlspecialchars($grp['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['reg_num'] ?></label>
+                    <input type="text" name="student_number" class="form-input" value="<?= $suggested_stu ?>">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'تاريخ الميلاد' : 'Date of Birth' ?></label>
+                    <input type="date" name="birth_date" class="form-input">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'سنة الالتحاق' : 'Enrollment Year' ?></label>
+                    <input type="number" name="enroll_year" class="form-input" value="<?= date('Y') ?>">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'الدفعة' : 'Section' ?></label>
+                    <select name="section_id" class="form-input">
+                        <?php foreach($sections as $sec): ?>
+                            <option value="<?= $sec['id'] ?>"><?= htmlspecialchars($sec['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'الفوج' : 'Group' ?></label>
+                    <select name="group_id" class="form-input">
+                        <?php foreach($groups as $grp): ?>
+                            <option value="<?= $grp['id'] ?>"><?= htmlspecialchars($grp['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <div id="teacher-only-fields" style="grid-column: span 2; display: none; grid-template-columns: 1fr; gap: 20px;">
-                <input type="text" name="employee_number" class="form-input" placeholder="Employee ID" value="<?= $suggested_emp ?>">
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'رقم الموظف' : 'Employee ID' ?></label>
+                    <input type="text" name="employee_number" class="form-input" value="<?= $suggested_emp ?>">
+                </div>
             </div>
-
-            <script>
-                function toggleStudentFields(role) {
-                    const sFields = document.getElementById('student-only-fields');
-                    const tFields = document.getElementById('teacher-only-fields');
-                    sFields.style.display = (role === 'student') ? 'grid' : 'none';
-                    tFields.style.display = (role === 'teacher') ? 'grid' : 'none';
-                }
-            </script>
             
-            <button type="submit" class="btn-primary" style="width: 100%; grid-column: span 2;">Create Account</button>
+            <div style="grid-column: span 3; margin-top: 10px;">
+                <button type="submit" class="btn-primary" style="width: 200px; background: #059669;"><?= $lang == 'ar' ? 'تأكيد' : 'Confirm' ?></button>
+            </div>
         </form>
     </div>
 
-    <script>
-        const allGroups = <?= json_encode($groups) ?>;
-        
-        function filterGroups(sectionSelect, groupSelect) {
-            const sectionId = sectionSelect.value;
-            const groups = allGroups.filter(g => g.section_id == sectionId);
-            
-            groupSelect.innerHTML = '';
-            groups.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.id;
-                opt.textContent = g.name;
-                groupSelect.appendChild(opt);
-            });
+    <!-- Tabs Navigation -->
+    <div style="display: flex; gap: 10px; margin-bottom: 25px; background: #f1f5f9; padding: 5px; border-radius: 10px; width: fit-content;">
+        <button onclick="switchTab('students')" class="tab-btn active-tab" id="tab-students">
+            <i class="fas fa-user-graduate"></i> <?= $lang == 'ar' ? 'الطلاب' : 'Students' ?>
+        </button>
+        <button onclick="switchTab('teachers')" class="tab-btn" id="tab-teachers">
+            <i class="fas fa-chalkboard-teacher"></i> <?= $lang == 'ar' ? 'الأساتذة' : 'Teachers' ?>
+        </button>
+        <button onclick="switchTab('admins')" class="tab-btn" id="tab-admins">
+            <i class="fas fa-user-shield"></i> <?= $lang == 'ar' ? 'المسؤولون' : 'Administrators' ?>
+        </button>
+    </div>
+
+    <style>
+        .tab-btn {
+            padding: 10px 25px;
+            border: none;
+            background: none;
+            color: #64748b;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-
-        document.querySelector('select[name="section_id"]').addEventListener('change', function() {
-            filterGroups(this, document.querySelector('select[name="group_id"]'));
-        });
-
-        function setupApprovalFilters() {
-            document.querySelectorAll('form').forEach(form => {
-                const s = form.querySelector('select[name="section_id"]');
-                const g = form.querySelector('select[name="group_id"]');
-                if(s && g) {
-                    s.addEventListener('change', () => filterGroups(s, g));
-                    filterGroups(s, g);
-                }
-            });
+        .tab-btn:hover {
+            color: #1e293b;
+            background: #e2e8f0;
         }
-        window.onload = setupApprovalFilters;
-    </script>
+        .tab-btn.active-tab {
+            background: #ffffff;
+            color: #0A2B8E;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .user-tab-content {
+            display: none;
+        }
+        .user-tab-content.active-content {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .action-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .action-icon-btn:hover {
+            background: #f1f5f9;
+        }
+    </style>
 
-    <p style="color: #666; margin-bottom: 20px;">Manage all students, teachers, and administrators in the system.</p>
-    
-    <input type="text" id="user-search" onkeyup="filterTable('user-search', 'users-table', 0)" class="form-input" placeholder="Search by Name (e.g. j...)" style="max-width: 350px;">
+    <div style="margin-bottom: 25px;">
+        <div style="position: relative; max-width: 400px;">
+            <i class="fas fa-search" style="position: absolute; left: 12px; top: 12px; color: #94a3b8;"></i>
+            <input type="text" id="user-search" onkeyup="globalSearch()" class="form-input" placeholder="<?= $lang == 'ar' ? 'البحث بالاسم أو البريد...' : 'Search by name or email...' ?>" style="padding-left: 40px; margin: 0;">
+        </div>
+    </div>
 
-    <table class="data-table" id="users-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Institutional ID</th>
-                <th>Full Name</th>
-                <th>Academic Track</th>
-                <th>GPA</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach($users as $user): 
-                $status_label = '<span class="badge badge-success">Active</span>';
-                if($user['is_active'] == 2) {
-                    $status_label = '<span class="badge badge-info" style="background: #f39c12;">Pending Approval</span>';
-                }
+    <!-- Students Tab -->
+    <div id="content-students" class="user-tab-content active-content">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th><?= $lang == 'ar' ? 'رقم التسجيل' : 'Registration' ?></th>
+                    <th><?= $t['full_name'] ?></th>
+                    <th><?= $lang == 'ar' ? 'التخصص والفوج' : 'Speciality & Group' ?></th>
+                    <th><?= $lang == 'ar' ? 'المعدل' : 'Average' ?></th>
+                    <th><?= $lang == 'ar' ? 'الحالة' : 'Status' ?></th>
+                    <th style="text-align: right;"><?= $lang == 'ar' ? 'الإجراءات' : 'Actions' ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach($users as $user): if($user['role'] !== 'student') continue; 
+                    $gpa = '-';
+                    if($user['student_db_id']) {
+                        $stmtG = $pdo->prepare("SELECT SUM(g.grade * c.coefficient) / SUM(c.coefficient) FROM grades g JOIN courses c ON g.course_id = c.id WHERE g.student_id = ?");
+                        $stmtG->execute([$user['student_db_id']]);
+                        $val = $stmtG->fetchColumn();
+                        $gpa = $val ? number_format($val, 2) : '0.00';
+                    }
+                ?>
+                <tr class="user-row">
+                    <td><span style="font-family: monospace; color: #475569; font-weight: 600;"><?= htmlspecialchars($user['student_number'] ?? 'N/A') ?></span></td>
+                    <td>
+                        <div style="font-weight: 600; color: #1e293b;"><?= htmlspecialchars($user['name']) ?></div>
+                        <div style="font-size: 12px; color: #64748b;"><?= htmlspecialchars($user['email']) ?></div>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px; font-weight: 500; color: #0A2B8E;"><?= htmlspecialchars($user['section_name'] ?? ($lang == 'ar' ? 'غير محدد' : 'Not set')) ?></div>
+                        <div style="font-size: 11px; color: #94a3b8;"><?= $lang == 'ar' ? 'الفوج' : 'Group' ?> <?= htmlspecialchars($user['group_name'] ?? '-') ?></div>
+                    </td>
+                    <td><span style="font-weight: 700; color: <?= (float)$gpa >= 10 ? '#059669' : '#dc2626' ?>;"><?= $gpa ?></span></td>
+                    <td><span class="badge badge-success" style="background: #ecfdf5; color: #059669; border: 1px solid #d1fae5;"><?= $lang == 'ar' ? 'نشط' : 'Active' ?></span></td>
+                    <td style="text-align: right;">
+                        <button onclick="openEditModal(<?= htmlspecialchars(json_encode($user)) ?>)" class="action-icon-btn" title="<?= $lang == 'ar' ? 'تعديل المستخدم' : 'Edit User' ?>">
+                            <i class="fas fa-edit" style="color: #3b82f6;"></i>
+                        </button>
+                        <button onclick="confirmAction(event, '<?= $lang == 'ar' ? 'حذف حساب الطالب؟' : 'Delete student account?' ?>', '?action=suspend&id=<?= $user['id'] ?>')" class="action-icon-btn" title="<?= $lang == 'ar' ? 'حذف الحساب' : 'Delete Account' ?>">
+                            <i class="fas fa-trash-alt" style="color: #ef4444;"></i>
+                        </button>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 
-                $gpa = '-';
-                if($user['role'] == 'student' && $user['student_db_id']) {
-                    $stmtG = $pdo->prepare("SELECT SUM(g.grade * c.coefficient) / SUM(c.coefficient) FROM grades g JOIN courses c ON g.course_id = c.id WHERE g.student_id = ?");
-                    $stmtG->execute([$user['student_db_id']]);
-                    $val = $stmtG->fetchColumn();
-                    $gpa = $val ? number_format($val, 2) : '0.00';
-                }
-            ?>
-            <tr>
-                <td><?= $user['id'] ?></td>
-                <td><span class="badge badge-info"><?= htmlspecialchars($user['student_number'] ?? ($user['employee_number'] ?? 'N/A')) ?></span></td>
-                <td>
-                    <strong><?= htmlspecialchars($user['name']) ?></strong>
-                    <div style="font-size: 11px; color: #666;"><?= htmlspecialchars($user['email']) ?></div>
-                </td>
-                <td>
-                    <?php if($user['role'] == 'student'): ?>
-                        <div style="font-weight: 500; color: #4a5568;"><?= htmlspecialchars($user['section_name'] ?? 'Not set') ?></div>
-                        <div style="font-size: 11px; color: #718096;">Group: <?= htmlspecialchars($user['group_name'] ?? '-') ?></div>
-                    <?php else: ?>
-                        <span class="badge" style="background: #edf2f7; color: #4a5568; text-transform: capitalize;"><?= $user['role'] ?></span>
-                    <?php endif; ?>
-                </td>
-                <td><span style="font-weight: 600; color: #0A2B8E;"><?= $gpa ?></span></td>
-                <td><?= $status_label ?></td>
-                <td>
-                    <?php if($user['is_active'] == 2): ?>
-                        <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <form method="POST" style="display: flex; flex-direction: column; gap: 8px;">
-                                <input type="hidden" name="approve_user_id" value="<?= $user['id'] ?>">
-                                <input type="email" name="official_email" class="form-input" style="padding: 5px; margin: 0; font-size: 11px;" 
-                                       required value="<?= strtolower(str_replace(' ', '.', $user['name'])) ?>@usthb.dz">
-                                <div style="display: flex; gap: 5px;">
-                                    <select name="section_id" class="form-input" style="padding: 4px; font-size: 11px; margin:0;">
-                                        <?php foreach($sections as $sec): ?>
-                                            <option value="<?= $sec['id'] ?>"><?= $sec['name'] ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <select name="group_id" class="form-input" style="padding: 4px; font-size: 11px; margin:0;">
-                                        <?php foreach($groups as $grp): ?>
-                                            <option value="<?= $grp['id'] ?>"><?= $grp['name'] ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn-primary" style="padding: 6px; font-size: 11px;">Approve & Assign</button>
-                            </form>
-                        </div>
-                    <?php else: ?>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <button onclick="openEditModal(<?= htmlspecialchars(json_encode($user)) ?>)" style="background: none; border: none; cursor: pointer; color: #4a90e2; font-weight: bold; font-size: 14px;">Edit</button>
-                            <a href="#" onclick="confirmAction(event, 'Suspend account?', '?action=suspend&id=<?= $user['id'] ?>')" style="color: #e74c3c; text-decoration: none; font-weight: bold; font-size: 14px;">Delete</a>
-                        </div>
-                    <?php endif; ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-<div id="edit-user-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
-        <h3 style="color: #0A2B8E; margin-bottom: 20px;">Edit Account</h3>
+    <!-- Teachers Tab -->
+    <div id="content-teachers" class="user-tab-content">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th><?= $lang == 'ar' ? 'رقم الموظف' : 'Employee ID' ?></th>
+                    <th><?= $t['full_name'] ?></th>
+                    <th><?= $lang == 'ar' ? 'البريد المؤسسي' : 'Institutional Email' ?></th>
+                    <th><?= $lang == 'ar' ? 'الحالة' : 'Status' ?></th>
+                    <th style="text-align: right;"><?= $lang == 'ar' ? 'الإجراءات' : 'Actions' ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach($users as $user): if($user['role'] !== 'teacher') continue; ?>
+                <tr class="user-row">
+                    <td><span style="font-family: monospace; color: #475569; font-weight: 600;"><?= htmlspecialchars($user['employee_number'] ?? 'N/A') ?></span></td>
+                    <td style="font-weight: 600; color: #1e293b;"><?= htmlspecialchars($user['name']) ?></td>
+                    <td style="color: #64748b;"><?= htmlspecialchars($user['email']) ?></td>
+                    <td><span class="badge badge-success" style="background: #f0f9ff; color: #0369a1; border: 1px solid #e0f2fe;"><?= $lang == 'ar' ? 'أستاذ' : 'Faculty' ?></span></td>
+                    <td style="text-align: right;">
+                        <button onclick="openEditModal(<?= htmlspecialchars(json_encode($user)) ?>)" class="action-icon-btn">
+                            <i class="fas fa-edit" style="color: #3b82f6;"></i>
+                        </button>
+                        <button onclick="confirmAction(event, '<?= $lang == 'ar' ? 'حذف حساب الأستاذ؟' : 'Delete teacher account?' ?>', '?action=suspend&id=<?= $user['id'] ?>')" class="action-icon-btn">
+                            <i class="fas fa-trash-alt" style="color: #ef4444;"></i>
+                        </button>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Admins Tab -->
+    <div id="content-admins" class="user-tab-content">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th><?= $lang == 'ar' ? 'مستوى الوصول' : 'Access Level' ?></th>
+                    <th><?= $t['full_name'] ?></th>
+                    <th><?= $lang == 'ar' ? 'البريد الإلكتروني' : 'Account Email' ?></th>
+                    <th><?= $lang == 'ar' ? 'تاريخ الإنشاء' : 'Created At' ?></th>
+                    <th style="text-align: right;"><?= $lang == 'ar' ? 'الإجراءات' : 'Actions' ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach($users as $user): if($user['role'] !== 'admin') continue; ?>
+                <tr class="user-row">
+                    <td><span class="badge" style="background: #fff1f2; color: #be123c; border: 1px solid #ffe4e6; text-transform: uppercase; font-size: 10px;"><?= $lang == 'ar' ? 'جذر الأمان' : 'Security Root' ?></span></td>
+                    <td style="font-weight: 600; color: #1e293b;"><?= htmlspecialchars($user['name']) ?></td>
+                    <td style="color: #64748b;"><?= htmlspecialchars($user['email']) ?></td>
+                    <td style="font-size: 13px; color: #94a3b8;"><?= date('M d, Y', strtotime($user['created_at'])) ?></td>
+                    <td style="text-align: right;">
+                        <button onclick="openEditModal(<?= htmlspecialchars(json_encode($user)) ?>)" class="action-icon-btn">
+                            <i class="fas fa-edit" style="color: #3b82f6;"></i>
+                        </button>
+                        <button onclick="confirmAction(event, '<?= $lang == 'ar' ? 'إلغاء صلاحيات المسؤول؟' : 'Revoke admin access?' ?>', '?action=suspend&id=<?= $user['id'] ?>')" class="action-icon-btn">
+                            <i class="fas fa-user-slash" style="color: #ef4444;"></i>
+                        </button>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit Modal (Refined) -->
+<div id="edit-user-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 40px; border-radius: 16px; width: 100%; max-width: 550px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h3 style="color: #1e293b; margin: 0; font-size: 20px;"><?= $lang == 'ar' ? 'تعديل الحساب' : 'Edit Account' ?></h3>
+            <button onclick="document.getElementById('edit-user-modal').style.display='none'" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:24px;">&times;</button>
+        </div>
         <form method="POST">
             <input type="hidden" name="edit_user_id" id="edit-id">
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">Full Name</label>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #64748b;">Full Legal Name</label>
                 <input type="text" name="edit_name" id="edit-name" class="form-input" required>
             </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">Official Email</label>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #64748b;">Official University Email</label>
                 <input type="email" name="edit_email" id="edit-email" class="form-input" required>
             </div>
-            <div id="edit-student-fields" style="display: none; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div id="edit-student-fields" style="display: none; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
                 <div>
-                    <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">Section</label>
+                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #64748b;">Academic Section</label>
                     <select name="edit_section" id="edit-section" class="form-input">
                         <?php foreach($sections as $sec): ?>
                             <option value="<?= $sec['id'] ?>"><?= $sec['name'] ?></option>
@@ -296,7 +394,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">Group</label>
+                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #64748b;">Assigned Group</label>
                     <select name="edit_group" id="edit-group" class="form-input">
                         <?php foreach($groups as $grp): ?>
                             <option value="<?= $grp['id'] ?>"><?= $grp['name'] ?></option>
@@ -304,20 +402,65 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
                     </select>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="submit" class="btn-primary" style="flex: 1;">Save Changes</button>
-                <button type="button" onclick="document.getElementById('edit-user-modal').style.display='none'" class="logout-btn" style="flex: 1;">Cancel</button>
+            <div style="display: flex; gap: 15px; margin-top: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 2; padding: 12px;">Save Profile Changes</button>
+                <button type="button" onclick="document.getElementById('edit-user-modal').style.display='none'" class="logout-btn" style="flex: 1; border: 1px solid #e2e8f0; background: white; color: #64748b;">Discard</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+    function switchTab(tab) {
+        document.querySelectorAll('.user-tab-content').forEach(c => c.classList.remove('active-content'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+        
+        document.getElementById('content-' + tab).classList.add('active-content');
+        document.getElementById('tab-' + tab).classList.add('active-tab');
+    }
+
+    function globalSearch() {
+        const input = document.getElementById('user-search');
+        const filter = input.value.toUpperCase();
+        const rows = document.querySelectorAll('.user-row');
+
+        rows.forEach(row => {
+            const text = row.textContent || row.innerText;
+            if (text.toUpperCase().indexOf(filter) > -1) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    function toggleStudentFields(role) {
+        const sFields = document.getElementById('student-only-fields');
+        const tFields = document.getElementById('teacher-only-fields');
+        sFields.style.display = (role === 'student') ? 'grid' : 'none';
+        tFields.style.display = (role === 'teacher') ? 'grid' : 'none';
+    }
+
+    const allGroups = <?= json_encode($groups) ?>;
+    function filterGroups(sectionSelect, groupSelect) {
+        const sectionId = sectionSelect.value;
+        const groups = allGroups.filter(g => g.section_id == sectionId);
+        groupSelect.innerHTML = '';
+        groups.forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g.id; opt.textContent = g.name;
+            groupSelect.appendChild(opt);
+        });
+    }
+
+    document.querySelector('select[name="section_id"]').addEventListener('change', function() {
+        filterGroups(this, document.querySelector('select[name="group_id"]'));
+    });
+
     function openEditModal(user) {
         document.getElementById('edit-id').value = user.id;
         document.getElementById('edit-name').value = user.name;
         document.getElementById('edit-email').value = user.email;
-        
         const studentFields = document.getElementById('edit-student-fields');
         if(user.role === 'student') {
             studentFields.style.display = 'grid';
@@ -326,7 +469,6 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
         } else {
             studentFields.style.display = 'none';
         }
-        
         document.getElementById('edit-user-modal').style.display = 'flex';
     }
 </script>
