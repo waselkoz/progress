@@ -24,9 +24,13 @@ if (isset($_SESSION['student_id'])) {
     $stmt->execute([$_SESSION['student_id']]);
     $exam_grades = $stmt->fetchAll();
 
+    $missing_any_grade = false;
+
     foreach ($exam_grades as $gm) {
         $grade = $gm['final_grade'];
+        
         if ($grade === null) {
+            $missing_any_grade = true;
             $ca_sum = 0;
             $ca_count = 0;
             if ($gm['td_grade'] !== null) {
@@ -68,7 +72,12 @@ if (isset($_SESSION['student_id'])) {
     }
 }
 
-$moyenne = ($total_coef > 0) ? ($weighted_sum / $total_coef) : null;
+if ($missing_any_grade) {
+    $moyenne = null;
+    $total_credits_earned = 0; // Don't show credits until all grades are in
+} else {
+    $moyenne = ($total_coef > 0) ? ($weighted_sum / $total_coef) : null;
+}
 ?>
 
 <div class="card-container">

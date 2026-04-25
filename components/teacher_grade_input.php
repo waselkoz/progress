@@ -6,7 +6,7 @@ if(!$class_id) die("No class selected.");
 
 
 $stmt = $pdo->prepare("
-    SELECT c.name, sec.name as sec_name, g.name as grp_name, ca.course_id, ca.section_id, ca.group_id 
+    SELECT c.name, c.code as course_code, sec.name as sec_name, g.name as grp_name, ca.course_id, ca.section_id, ca.group_id 
     FROM course_assignment ca 
     JOIN courses c ON ca.course_id = c.id 
     JOIN section sec ON ca.section_id = sec.id 
@@ -28,6 +28,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['grades'])) {
     if (!$grading_open) {
         die("Error: The Grading Platform is strictly locked by the Administration.");
     }
+    $course_code = $class_info['course_code'];
+    $has_tp = in_array($course_code, ['SE', 'BDD', 'GL', 'PWEB']);
+    $has_td = ($course_code !== 'PWEB');
+    $has_exam = true; // All courses have exams
+
     foreach($_POST['grades'] as $student_id => $data) {
         $exam = $data['grade'] !== '' ? $data['grade'] : null;
         $td = $data['td'] !== '' ? $data['td'] : null;
@@ -36,22 +41,43 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['grades'])) {
         $comment = $data['comment'] ?? null;
         $is_dette = isset($data['is_dette']) ? 1 : 0;
         
-        $ca_sum = 0; $ca_count = 0;
-        if ($td !== null) { $ca_sum += $td; $ca_count++; }
-        if ($tp !== null) { $ca_sum += $tp; $ca_count++; }
-        $ca_avg = ($ca_count > 0) ? ($ca_sum / $ca_count) : null;
+        // Ignore inputs that are not applicable to the module
+        if (!$has_exam) $exam = null;
+        if (!$has_td) $td = null;
+        if (!$has_tp) $tp = null;
         
+        $expected_count = 0;
+        $entered_count = 0;
+        
+        if ($has_exam) {
+            $expected_count++;
+            if ($exam !== null) $entered_count++;
+        }
+        if ($has_td) {
+            $expected_count++;
+            if ($td !== null) $entered_count++;
+        }
+        if ($has_tp) {
+            $expected_count++;
+            if ($tp !== null) $entered_count++;
+        }
+
         $main_exam = $exam;
         if ($rattrapage !== null && ($exam === null || $rattrapage > $exam)) {
             $main_exam = $rattrapage;
         }
+
         $final_grade = null;
-        if ($main_exam !== null && $ca_avg !== null) {
-            $final_grade = ($main_exam * 0.6) + ($ca_avg * 0.4);
-        } elseif ($main_exam !== null) {
-            $final_grade = $main_exam;
-        } elseif ($ca_avg !== null) {
-            $final_grade = $ca_avg;
+        if ($entered_count === $expected_count && $expected_count > 0) {
+            if ($has_exam && $has_td && $has_tp) {
+                $final_grade = ($main_exam * 0.6) + ((($td + $tp) / 2) * 0.4);
+            } elseif ($has_exam && $has_td) {
+                $final_grade = ($main_exam * 0.6) + ($td * 0.4);
+            } elseif ($has_exam && $has_tp) {
+                $final_grade = ($main_exam * 0.6) + ($tp * 0.4);
+            } elseif (!$has_exam && !$has_td && $has_tp) {
+                $final_grade = $tp; // PWEB
+            }
         }
         
         $stmt = $pdo->prepare("
@@ -147,21 +173,21 @@ $resit_open = $stmtR->fetchColumn() == '1';
                         </td>
                         <td style="text-align: center;">
                             <input type="number" step="0.01" min="0" max="20" class="form-input" 
-                                   style="text-align: center; max-width: 100px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 600; <?= !$grading_open ? 'background: #f1f5f9; cursor: not-allowed; color: #94a3b8;' : '' ?>"
+                                   style="text-align: center; max-width: 100px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 600; <?= (!$grading_open || !$has_exam) ? 'background: #e2e8f0; cursor: not-allowed; color: #94a3b8;' : '' ?>"
                                    name="grades[<?= $s['id'] ?>][grade]" value="<?= htmlspecialchars($s['grade'] ?? '') ?>" 
-                                   <?= $grading_open ? '' : 'readonly' ?>>
+                                   <?= ($grading_open && $has_exam) ? '' : 'readonly' ?>>
                         </td>
                         <td style="text-align: center;">
                             <input type="number" step="0.01" min="0" max="20" class="form-input" 
-                                   style="text-align: center; max-width: 90px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f0f7ff; font-weight: 500; <?= !$grading_open ? 'background: #f1f5f9; cursor: not-allowed; color: #94a3b8;' : '' ?>"
+                                   style="text-align: center; max-width: 90px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500; <?= (!$grading_open || !$has_td) ? 'background: #e2e8f0; cursor: not-allowed; color: #94a3b8;' : 'background: #f0f7ff;' ?>"
                                    name="grades[<?= $s['id'] ?>][td]" value="<?= htmlspecialchars($s['td_grade'] ?? '') ?>" 
-                                   <?= $grading_open ? '' : 'readonly' ?>>
+                                   <?= ($grading_open && $has_td) ? '' : 'readonly' ?>>
                         </td>
                         <td style="text-align: center;">
                             <input type="number" step="0.01" min="0" max="20" class="form-input" 
-                                   style="text-align: center; max-width: 90px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f0fff4; font-weight: 500; <?= !$grading_open ? 'background: #f1f5f9; cursor: not-allowed; color: #94a3b8;' : '' ?>"
+                                   style="text-align: center; max-width: 90px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500; <?= (!$grading_open || !$has_tp) ? 'background: #e2e8f0; cursor: not-allowed; color: #94a3b8;' : 'background: #f0fff4;' ?>"
                                    name="grades[<?= $s['id'] ?>][tp]" value="<?= htmlspecialchars($s['tp_grade'] ?? '') ?>" 
-                                   <?= $grading_open ? '' : 'readonly' ?>>
+                                   <?= ($grading_open && $has_tp) ? '' : 'readonly' ?>>
                         </td>
                         <td style="text-align: center;">
                             <input type="number" step="0.01" min="0" max="20" class="form-input" 

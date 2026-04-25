@@ -64,8 +64,13 @@ function getAppreciation($grade) {
                 <?php 
                     $total_credits = 0;
                     $acquired_credits = 0;
+                    $missing_any_grade = false;
                     $modules_calc = [];
                     foreach($transcript as $t): 
+                    
+                    if ($t['db_final_grade'] === null) {
+                        $missing_any_grade = true;
+                    }
                     $exam = $t['exam_grade'];
                     $td = $t['td_grade'];
                     $tp = $t['tp_grade'];
@@ -138,7 +143,7 @@ function getAppreciation($grade) {
         </tbody>
     </table>
 
-    <?php if($total_coef > 0):
+    <?php if($total_coef > 0 && !$missing_any_grade):
         $overall_avg = $total_notes_coef / $total_coef;
         if ($overall_avg >= 10) {
             $acquired_credits = $total_credits;
