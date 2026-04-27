@@ -1,6 +1,6 @@
 <?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
-ini_set('session.gc_maxlifetime', 2592000);
-session_set_cookie_params(2592000);
+ini_set('session.gc_maxlifetime', 86400);
+session_set_cookie_params(86400);
 session_start();
 
 $host = "localhost";
