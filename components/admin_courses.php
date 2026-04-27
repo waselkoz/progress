@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 if(($_SESSION['user_role'] ?? '') !== 'admin') die("Access Denied.");
 
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['c_code'])) {
@@ -24,14 +25,19 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['assign_teacher'])) {
     $cid = $_POST['course_id'];
     $sids = $_POST['section_ids'] ?? [];
     
+   
+    $stmtCourse = $pdo->prepare("SELECT semester FROM courses WHERE id = ?");
+    $stmtCourse->execute([$cid]);
+    $course_semester = $stmtCourse->fetchColumn() ?: 'S1';
+    
     foreach($sids as $sid) {
         $groups = $pdo->prepare("SELECT id FROM `group` WHERE section_id = ?");
         $groups->execute([$sid]);
         $group_list = $groups->fetchAll(PDO::FETCH_COLUMN);
         
         foreach($group_list as $gid) {
-            $stmt = $pdo->prepare("INSERT INTO course_assignment (teacher_id, course_id, section_id, group_id, academic_year, semester, teaching_type) VALUES (?, ?, ?, ?, ?, 'S2', 'C') ON DUPLICATE KEY UPDATE teacher_id = VALUES(teacher_id)");
-            $stmt->execute([$tid, $cid, $sid, $gid, date('Y')]);
+            $stmt = $pdo->prepare("INSERT INTO course_assignment (teacher_id, course_id, section_id, group_id, academic_year, semester, teaching_type) VALUES (?, ?, ?, ?, ?, ?, 'C') ON DUPLICATE KEY UPDATE teacher_id = VALUES(teacher_id)");
+            $stmt->execute([$tid, $cid, $sid, $gid, date('Y'), $course_semester]);
         }
     }
     echo "<script>window.onload = () => showToast('Teacher assigned to all selected sections/groups!');</script>";
@@ -81,7 +87,7 @@ $active_assignments = $pdo->query("
             </button>
         </div>
     
-    <!-- Add Module Form (Refined) -->
+    
     <div id="add-curr-form" style="display: none; background: #ffffff; padding: 30px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h4 style="margin: 0; color:#1e293b; font-size: 18px;"><?= $lang == 'ar' ? 'مقياس جديد' : 'New Module' ?></h4>
@@ -127,13 +133,13 @@ $active_assignments = $pdo->query("
                     <option value="S2"><?= $lang == 'ar' ? 'السداسي 2 (S2)' : 'Semester 2 (S2)' ?></option>
                 </select>
             </div>
-            <div style="grid-column: span 3; margin-top: 10px;">
+            <div style="grid-column: span 2; margin-top: 10px;">
                 <button type="submit" class="btn-primary" style="width: 200px; background: #059669;"><?= $lang == 'ar' ? 'تأكيد' : 'Confirm' ?></button>
             </div>
         </form>
     </div>
 
-    <!-- Assignments Section (Formal Card) -->
+    
     <div style="background: #f8fafc; padding: 30px; border-radius: 12px; margin-bottom: 40px; border: 1px solid #e2e8f0; border-left: 5px solid #3b82f6;">
         <h4 style="margin: 0 0 10px 0; color:#1e293b; font-size: 18px; display: flex; align-items: center; gap: 10px;">
             <i class="fas fa-link" style="color: #3b82f6;"></i> <?= $lang == 'ar' ? 'تعيين الأساتذة' : 'Faculty Assignment' ?>
@@ -176,7 +182,7 @@ $active_assignments = $pdo->query("
         </form>
     </div>
 
-    <!-- Module Catalog -->
+    
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3 style="color: #1e293b; margin: 0; font-size: 20px;"><?= $lang == 'ar' ? 'دليل الوحدات الرسمي' : 'Official Module Catalog' ?></h3>
     </div>

@@ -1,4 +1,4 @@
-/* Institutional & Corporate Palette - USTHB */
+
 :root {
     --usthb-blue: #0A2B8E;
     --usthb-dark: #061958;
@@ -24,7 +24,7 @@ body {
     overflow-y: auto !important;
 }
 
-/* Header / Navbar: Solid, Rigid, High-Contrast */
+
 .landing-nav {
     display: flex;
     padding: 0 60px;
@@ -86,7 +86,7 @@ body {
     border-bottom-color: #90CDF4;
 }
 
-/* Hero Section: Highly Visible Image, Structured Content Box */
+
 .hero {
     display: flex;
     align-items: center;
@@ -165,7 +165,7 @@ body {
     color: var(--white);
 }
 
-/* About Section */
+
 .about-section {
     background: var(--white);
     padding: 80px 10%;
@@ -222,7 +222,7 @@ body {
     margin: 0;
 }
 
-/* Footer structure */
+
 .footer-info {
     text-align: center;
     padding: 30px 20px;
@@ -232,7 +232,7 @@ body {
     border-top: 4px solid var(--usthb-blue);
 }
 
-/* Responsive Media Queries */
+
 @media (max-width: 768px) {
     .landing-nav {
         flex-direction: column;

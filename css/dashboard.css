@@ -430,7 +430,7 @@ body {
     gap: 4px;
 }
 
-/* Responsive Media Queries */
+
 @media (max-width: 768px) {
     body { flex-direction: column; overflow-y: auto; }
     .sidebar { width: 100%; min-height: auto; position: static; padding: 0; }

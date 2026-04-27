@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 if(($_SESSION['user_role'] ?? '') !== 'teacher') die("Access Denied.");
 
 $class_id = $_GET['class_id'] ?? null;

@@ -1,4 +1,4 @@
-<?php
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
 session_start();
 $lang = $_GET['lang'] ?? $_SESSION['lang'] ?? 'en';
 if (isset($_GET['lang'])) {

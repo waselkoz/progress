@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 
 $profile = null;
 if(isset($_SESSION['user_id'])) {
@@ -38,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
         $hashed = password_hash($new_pass, PASSWORD_DEFAULT);
         $stmt = $pdo->prepare("UPDATE users SET password = ?, password_changed = 1 WHERE id = ?");
         $stmt->execute([$hashed, $_SESSION['user_id']]);
-        $profile['password_changed'] = 1; // update locally for immediate UI reflection
+        $profile['password_changed'] = 1;
         $msg = "Password updated successfully!";
         $msg_type = "success";
     }
@@ -66,7 +67,7 @@ $pending_request = $stmtReq->fetch();
     </div>
     
     <div style="display: grid; grid-template-columns: 300px 1fr; gap: 40px;">
-        <!-- Left: Identity Summary -->
+        
         <div style="display: flex; flex-direction: column; gap: 20px;">
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 40px 20px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <div style="width: 120px; height: 120px; background: #f1f5f9; border-radius: 50%; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #94a3b8; border: 4px solid #fff; box-shadow: 0 0 0 1px #e2e8f0;">
@@ -95,7 +96,7 @@ $pending_request = $stmtReq->fetch();
             <?php endif; ?>
         </div>
         
-        <!-- Right: Detailed Information -->
+        
         <div style="display: flex; flex-direction: column; gap: 30px;">
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                 <h3 style="margin: 0 0 25px 0; color: #1e293b; font-size: 18px; display: flex; align-items: center; gap: 10px;">
@@ -136,7 +137,7 @@ $pending_request = $stmtReq->fetch();
             </div>
 
             <?php if(($profile['role'] ?? '') != 'admin'): ?>
-            <!-- Security Update -->
+            
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                 <h3 style="margin: 0 0 25px 0; color: #1e293b; font-size: 18px; display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-key" style="color: #64748b;"></i> <?= $t['security'] ?>

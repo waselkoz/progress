@@ -1,4 +1,4 @@
-<?php
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
 session_start();
 $lang = $_SESSION['lang'] ?? 'en';
 

@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 
 $modules = [];
 if(isset($student_info['section_id'])) {

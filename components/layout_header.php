@@ -1,4 +1,4 @@
-<?php
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
 if(session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -58,7 +58,9 @@ $translations = [
         'pending' => 'Pending',
         'admitted' => 'Admitted',
         'relegated' => 'Relegated',
-        'credits' => 'Credits'
+        'credits' => 'Credits',
+        'coefficient' => 'Coefficient',
+        'semester' => 'Semester'
     ],
     'ar' => [
         'overview' => 'الرئيسية',
@@ -105,7 +107,9 @@ $translations = [
         'pending' => 'معلق',
         'admitted' => 'مقبول',
         'relegated' => 'مرفوض',
-        'credits' => 'الأرصدة'
+        'credits' => 'الأرصدة',
+        'coefficient' => 'المعامل',
+        'semester' => 'السداسي'
     ]
 ];
 

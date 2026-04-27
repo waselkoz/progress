@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 
 if ($user_role !== 'admin') {
     header("Location: dashboard.php");

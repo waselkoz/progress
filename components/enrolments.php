@@ -1,4 +1,5 @@
-<?php include 'layout_header.php';
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php';
 
 $enrolment = null;
 if (isset($_SESSION['student_id'])) {

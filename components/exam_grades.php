@@ -1,4 +1,5 @@
-<?php include 'layout_header.php';
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php';
 
 $exam_grades = [];
 $total_coef = 0;
@@ -79,7 +80,7 @@ if (isset($_SESSION['student_id'])) {
 
 if ($missing_any_grade) {
     $moyenne = null;
-    $total_credits_earned = 0; // Don't show credits until all grades are in
+    $total_credits_earned = 0;
 } else {
     $moyenne = ($total_coef > 0) ? ($weighted_sum / $total_coef) : null;
     if ($moyenne !== null && $moyenne >= 10) {
@@ -147,8 +148,10 @@ if ($missing_any_grade) {
             <thead style="background: #f8fafc;">
                 <tr>
                     <th style="padding: 15px 20px;"><?= $lang == 'ar' ? 'الوحدة الأكاديمية' : 'Academic Module' ?></th>
-                    <th style="text-align: center;"><?= $lang == 'ar' ? 'المعامل' : 'Coefficient' ?></th>
-                    <th style="text-align: center;"><?= $lang == 'ar' ? 'الأرصدة' : 'Credits' ?></th>
+                    <th style="text-align: center;"><?= $lang == 'ar' ? 'المعامل' : 'Coef' ?></th>
+                    <th style="text-align: center;"><?= $lang == 'ar' ? 'الامتحان' : 'Exam' ?></th>
+                    <th style="text-align: center;">TD</th>
+                    <th style="text-align: center;">TP</th>
                     <th style="text-align: center;"><?= $lang == 'ar' ? 'الحالة' : 'Status' ?></th>
                     <th style="text-align: right;"><?= $lang == 'ar' ? 'العلامة النهائية' : 'Final Mark' ?></th>
                 </tr>
@@ -186,14 +189,27 @@ if ($missing_any_grade) {
                             }
                         }
                         ?>
+                        <?php 
+                        $disp_exam = $gm['grade'];
+                        $is_resit_shown = false;
+                        if ($gm['rattrapage_grade'] !== null && ($disp_exam === null || $gm['rattrapage_grade'] > $disp_exam)) {
+                            $disp_exam = $gm['rattrapage_grade'];
+                            $is_resit_shown = true;
+                        }
+                        ?>
                         <tr class="user-row">
                             <td style="padding: 15px 20px;">
                                 <div style="font-weight: 600; color: #1e293b;"><?= htmlspecialchars($gm['name']) ?></div>
                                 <div style="font-size: 11px; font-family: monospace; color: #64748b;">
-                                    <?= htmlspecialchars($gm['code']) ?></div>
+                                    <?= htmlspecialchars($gm['code']) ?> &bull; <?= $gm['credits'] ?> <?= $lang == 'ar' ? 'رصيد' : 'Credits' ?></div>
                             </td>
                             <td style="text-align: center; color: #475569; font-weight: 500;"><?= $gm['coefficient'] ?></td>
-                            <td style="text-align: center; color: #475569; font-weight: 500;"><?= $gm['credits'] ?></td>
+                            <td style="text-align: center; color: #1e293b; font-weight: 600;">
+                                <?= $disp_exam !== null ? number_format($disp_exam, 2) : '<span style="color:#cbd5e1">-</span>' ?>
+                                <?php if($is_resit_shown): ?><span style="color: #dc2626; font-size: 10px; margin-left: 4px;" title="Resit">R</span><?php endif; ?>
+                            </td>
+                            <td style="text-align: center; color: #475569;"><?= $gm['td_grade'] !== null ? number_format($gm['td_grade'], 2) : '<span style="color:#cbd5e1">-</span>' ?></td>
+                            <td style="text-align: center; color: #475569;"><?= $gm['tp_grade'] !== null ? number_format($gm['tp_grade'], 2) : '<span style="color:#cbd5e1">-</span>' ?></td>
                             <td style="text-align: center;">
                                 <?php if ($grade !== null): ?>
                                     <span
@@ -203,7 +219,7 @@ if ($missing_any_grade) {
                                     </span>
                                 <?php else: ?>
                                     <span
-                                        style="color: #94a3b8; font-size: 12px; font-style: italic;"><?= $lang == 'ar' ? 'في انتظار التقييم' : 'Pending Evaluation' ?></span>
+                                        style="color: #94a3b8; font-size: 12px; font-style: italic;"><?= $lang == 'ar' ? 'معلق' : 'Pending' ?></span>
                                 <?php endif; ?>
                             </td>
                             <td style="text-align: right; padding: 15px 20px;">

@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 
 $is_student = (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'student');
 $is_teacher = (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher');

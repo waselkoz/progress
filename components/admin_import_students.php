@@ -1,4 +1,4 @@
-<?php
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
 include 'layout_header.php';
 if (($_SESSION['user_role'] ?? '') !== 'admin')
     die("Access Denied.");
@@ -92,7 +92,7 @@ $groups = $pdo->query("SELECT id, name, section_id FROM `group` ORDER BY name")-
     <?php endif; ?>
 
     <div style="display: grid; grid-template-columns: 350px 1fr; gap: 30px;">
-        <!-- Left: Instructions -->
+        
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 30px;">
             <h4
                 style="margin: 0 0 15px 0; color: #1e293b; font-size: 16px; display: flex; align-items: center; gap: 10px;">
@@ -120,7 +120,7 @@ $groups = $pdo->query("SELECT id, name, section_id FROM `group` ORDER BY name")-
             </div>
         </div>
 
-        <!-- Right: Enrollment Form -->
+        
         <div
             style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
             <form method="POST">

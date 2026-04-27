@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 if(($_SESSION['user_role'] ?? '') !== 'admin') die("Access Denied.");
 
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['new_name'])) {
@@ -142,7 +143,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
             </button>
         </div>
     
-    <!-- Add User Form (Refined) -->
+    
     <div id="add-user-form" style="display: none; background: #ffffff; padding: 30px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h4 style="margin: 0; color:#1e293b; font-size: 18px;"><?= $lang == 'ar' ? 'مستخدم جديد' : 'New User' ?></h4>
@@ -151,7 +152,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
         <form method="POST" class="form-grid">
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['full_name'] ?></label>
-                <input type="text" name="new_name" class="form-input" placeholder="e.g. John Doe" required>
+                <input type="text" name="new_name" class="form-input" placeholder="<?= $lang == 'ar' ? 'الاسم الكامل' : 'Full Name' ?>" required>
             </div>
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['email_addr'] ?></label>
@@ -169,7 +170,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
             <div id="student-only-fields" style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div style="display: flex; flex-direction: column; gap: 5px;">
                     <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $t['reg_num'] ?></label>
-                    <input type="text" name="student_number" class="form-input" value="<?= $suggested_stu ?>">
+                    <input type="text" name="student_number" class="form-input" value="<?= $suggested_stu ?>" readonly style="background: #f8fafc; cursor: not-allowed;">
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 5px;">
                     <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'تاريخ الميلاد' : 'Date of Birth' ?></label>
@@ -200,17 +201,17 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
             <div id="teacher-only-fields" style="grid-column: span 2; display: none; grid-template-columns: 1fr; gap: 20px;">
                 <div style="display: flex; flex-direction: column; gap: 5px;">
                     <label style="font-size: 13px; color: #64748b; font-weight: 600;"><?= $lang == 'ar' ? 'رقم الموظف' : 'Employee ID' ?></label>
-                    <input type="text" name="employee_number" class="form-input" value="<?= $suggested_emp ?>">
+                    <input type="text" name="employee_number" class="form-input" value="<?= $suggested_emp ?>" readonly style="background: #f8fafc; cursor: not-allowed;">
                 </div>
             </div>
             
-            <div style="grid-column: span 3; margin-top: 10px;">
+            <div style="grid-column: span 2; margin-top: 10px;">
                 <button type="submit" class="btn-primary" style="width: 200px; background: #059669;"><?= $lang == 'ar' ? 'تأكيد' : 'Confirm' ?></button>
             </div>
         </form>
     </div>
 
-    <!-- Tabs Navigation -->
+    
     <div style="display: flex; gap: 10px; margin-bottom: 25px; background: #f1f5f9; padding: 5px; border-radius: 10px; width: fit-content;">
         <button onclick="switchTab('students')" class="tab-btn active-tab" id="tab-students">
             <i class="fas fa-user-graduate"></i> <?= $lang == 'ar' ? 'الطلاب' : 'Students' ?>
@@ -283,7 +284,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
         </div>
     </div>
 
-    <!-- Students Tab -->
+    
     <div id="content-students" class="user-tab-content active-content">
         <table class="data-table">
             <thead>
@@ -332,7 +333,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
         </table>
     </div>
 
-    <!-- Teachers Tab -->
+    
     <div id="content-teachers" class="user-tab-content">
         <table class="data-table">
             <thead>
@@ -365,7 +366,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
         </table>
     </div>
 
-    <!-- Admins Tab -->
+    
     <div id="content-admins" class="user-tab-content">
         <table class="data-table">
             <thead>
@@ -398,7 +399,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
         </table>
     </div>
 
-    <!-- Requests Tab -->
+    
     <div id="content-requests" class="user-tab-content">
         <table class="data-table">
             <thead>
@@ -445,7 +446,7 @@ $suggested_emp = 'EMP' . date('Y') . str_pad($nextEMPseq, 4, '0', STR_PAD_LEFT);
     </div>
 </div>
 
-<!-- Edit Modal (Refined) -->
+
 <div id="edit-user-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
     <div style="background: white; padding: 40px; border-radius: 16px; width: 100%; max-width: 550px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">

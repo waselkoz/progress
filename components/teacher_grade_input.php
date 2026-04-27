@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 if(($_SESSION['user_role'] ?? '') !== 'teacher') die("Access Denied.");
 
 $class_id = $_GET['class_id'] ?? null;
@@ -23,10 +24,9 @@ $stmtGrading = $pdo->query("SELECT setting_value FROM system_settings WHERE sett
 $grading_open_val = $stmtGrading->fetchColumn();
 $grading_open = ($grading_open_val === false) ? true : ($grading_open_val == '1');
 
-$course_code = $class_info['course_code'];
-$has_tp = in_array($course_code, ['SE', 'BDD', 'GL', 'PWEB']);
-$has_td = ($course_code !== 'PWEB');
-$has_exam = true; // All courses have exams
+$has_tp = (strpos($course_code, 'TP') !== false || in_array($course_code, ['SE', 'BDD', 'GL', 'PWEB', 'INF']));
+$has_td = (strpos($course_code, 'TD') !== false || ($course_code !== 'PWEB' && $course_code !== 'TP_ONLY'));
+$has_exam = true;
 
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['grades'])) {
     if (!$grading_open) {
@@ -41,7 +41,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['grades'])) {
         $comment = $data['comment'] ?? null;
         $is_dette = isset($data['is_dette']) ? 1 : 0;
         
-        // Ignore inputs that are not applicable to the module
+       
         if (!$has_exam) $exam = null;
         if (!$has_td) $td = null;
         if (!$has_tp) $tp = null;
@@ -68,15 +68,23 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['grades'])) {
         }
 
         $final_grade = null;
-        if ($entered_count === $expected_count && $expected_count > 0) {
+        if ($entered_count > 0) {
             if ($has_exam && $has_td && $has_tp) {
-                $final_grade = ($main_exam * 0.6) + ((($td + $tp) / 2) * 0.4);
+                if ($exam !== null && $td !== null && $tp !== null) {
+                    $final_grade = ($main_exam * 0.6) + ((($td + $tp) / 2) * 0.4);
+                }
             } elseif ($has_exam && $has_td) {
-                $final_grade = ($main_exam * 0.6) + ($td * 0.4);
+                if ($exam !== null && $td !== null) {
+                    $final_grade = ($main_exam * 0.6) + ($td * 0.4);
+                }
             } elseif ($has_exam && $has_tp) {
-                $final_grade = ($main_exam * 0.6) + ($tp * 0.4);
-            } elseif (!$has_exam && !$has_td && $has_tp) {
-                $final_grade = $tp; // PWEB
+                if ($exam !== null && $tp !== null) {
+                    $final_grade = ($main_exam * 0.6) + ($tp * 0.4);
+                }
+            } elseif ($has_exam) {
+                $final_grade = $main_exam;
+            } elseif (!$has_exam && $has_tp) {
+                $final_grade = $tp;
             }
         }
         
@@ -159,6 +167,7 @@ $resit_open = $stmtR->fetchColumn() == '1';
                     <th style="text-align: center; width: 120px;"><?= $lang == 'ar' ? 'علامة الأعمال الموجهة' : 'TD Mark' ?></th>
                     <th style="text-align: center; width: 120px;"><?= $lang == 'ar' ? 'علامة الأعمال التطبيقية' : 'TP Mark' ?></th>
                     <th style="text-align: center; width: 150px;"><?= $lang == 'ar' ? 'الاستدراك' : 'Resit' ?></th>
+                    <th style="text-align: center; width: 80px;"><?= $lang == 'ar' ? 'دَيْن' : 'Debt' ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -194,6 +203,9 @@ $resit_open = $stmtR->fetchColumn() == '1';
                                    style="text-align: center; max-width: 100px; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff5f5; font-weight: 700; color: #dc2626; <?= (!$grading_open || !$resit_open) ? 'background: #f1f5f9; cursor: not-allowed; color: #94a3b8;' : '' ?>"
                                    name="grades[<?= $s['id'] ?>][rattrapage]" value="<?= htmlspecialchars($s['rattrapage_grade'] ?? '') ?>" 
                                    <?= ($grading_open && $resit_open) ? '' : 'readonly' ?>>
+                        </td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" name="grades[<?= $s['id'] ?>][is_dette]" value="1" <?= $s['is_dette'] ? 'checked' : '' ?> style="transform: scale(1.5);">
                         </td>
                     </tr>
                     <?php endforeach; ?>

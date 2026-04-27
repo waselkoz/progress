@@ -1,4 +1,5 @@
-<?php include 'layout_header.php';
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php';
 
 $user_role = $_SESSION['user_role'] ?? 'student';
 $selected_section = $_GET['section_id'] ?? ($student_info['section_id'] ?? null);

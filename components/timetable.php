@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 
 $user_role = $_SESSION['user_role'] ?? 'student';
 $selected_section = $_GET['section_id'] ?? ($student_info['section_id'] ?? null);
@@ -61,7 +62,7 @@ $day_names = [
 ];
 ?>
 <div class="card-container" style="background: #fff; padding: 40px; border-radius: 0; border: 1px solid #000;">
-    <!-- Institutional Header Mockup -->
+    
     <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <img src="../img/USTHB.png" alt="USTHB" style="width: 70px;">

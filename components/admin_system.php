@@ -1,4 +1,5 @@
-<?php include 'layout_header.php'; 
+<?php // Wassim Selama / Aissaoui Imededdine / Khettab Imededdine / Temlali Oussama
+ include 'layout_header.php'; 
 if(($_SESSION['user_role'] ?? '') !== 'admin') die("Access Denied.");
 
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['semester'])) {
@@ -40,7 +41,7 @@ $grading_open = ($grading_open_val === false) ? true : ($grading_open_val == '1'
         </div>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 40px;">
-        <!-- Semester Control -->
+        
         <div style="background: #ffffff; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
                 <div style="background: #eff6ff; color: #3b82f6; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
@@ -57,7 +58,7 @@ $grading_open = ($grading_open_val === false) ? true : ($grading_open_val == '1'
             </form>
         </div>
 
-        <!-- Resit Control -->
+        
         <div style="background: #ffffff; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
                 <div style="background: #fff7ed; color: #f59e0b; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
@@ -78,7 +79,7 @@ $grading_open = ($grading_open_val === false) ? true : ($grading_open_val == '1'
             </form>
         </div>
 
-        <!-- Grading Platform -->
+        
         <div style="background: #ffffff; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
                 <div style="background: #f0fdf4; color: #22c55e; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
@@ -100,7 +101,7 @@ $grading_open = ($grading_open_val === false) ? true : ($grading_open_val == '1'
         </div>
     </div>
 
-    <!-- Secondary Operations -->
+    
     <h3 style="color: #1e293b; margin-bottom: 20px; font-size: 18px;"><?= $lang == 'ar' ? 'الصيانة الإدارية' : 'Administrative Maintenance' ?></h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
         <div style="background: #f8fafc; padding: 25px; border-radius: 12px; border: 1px dashed #cbd5e1;">
