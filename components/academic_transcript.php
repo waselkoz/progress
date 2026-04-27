@@ -67,10 +67,6 @@ function getAppreciation($grade) {
                     $missing_any_grade = false;
                     $modules_calc = [];
                     foreach($transcript as $t): 
-                    
-                    if ($t['db_final_grade'] === null) {
-                        $missing_any_grade = true;
-                    }
                     $exam = $t['exam_grade'];
                     $td = $t['td_grade'];
                     $tp = $t['tp_grade'];
@@ -90,7 +86,7 @@ function getAppreciation($grade) {
                         $main_exam = $rattrapage;
                     }
                     
-                    $final_grade = $t['db_final_grade'] ?? null;
+                    $final_grade = ($t['db_final_grade'] !== null && $t['db_final_grade'] !== '') ? (float)$t['db_final_grade'] : null;
                     if ($final_grade === null) {
                         if ($main_exam !== null && $ca_avg !== null) {
                             $final_grade = ($main_exam * 0.6) + ($ca_avg * 0.4);
@@ -101,7 +97,11 @@ function getAppreciation($grade) {
                         }
                     }
                     
-                    if ($final_grade !== null) {
+                    if ($final_grade === null || $final_grade === '') {
+                        $missing_any_grade = true;
+                    }
+                    
+                    if ($final_grade !== null && $final_grade !== '') {
                         $total_notes_coef += ($final_grade * $coef);
                         $total_coef += $coef;
                         
@@ -143,29 +143,7 @@ function getAppreciation($grade) {
         </tbody>
     </table>
 
-    <?php if($total_coef > 0 && !$missing_any_grade):
-        $overall_avg = $total_notes_coef / $total_coef;
-        if ($overall_avg >= 10) {
-            $acquired_credits = $total_credits;
-        }
-    ?>
-    <div class="info-panel-blue" style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <p class="stat-label"><?= $lang == 'ar' ? 'الأرصدة المكتسبة' : 'Acquired Credits' ?></p>
-            <h2 class="stat-value" style="font-size: 28px; <?= $acquired_credits == $total_credits ? 'color: #2ecc71;' : '' ?>"><?= $acquired_credits ?> / <?= $total_credits ?></h2>
-        </div>
-        <div style="text-align: center;">
-            <p class="stat-label"><?= $lang == 'ar' ? 'المعدل العام' : 'Overall Average' ?></p>
-            <h2 class="stat-value" style="font-size: 32px;"><?= number_format($overall_avg, 2) ?> / 20</h2>
-        </div>
-        <div style="text-align: right;">
-            <p class="stat-label"><?= $lang == 'ar' ? 'النتيجة النهائية' : 'Final Result' ?></p>
-            <h3 style="margin: 0; font-size: 24px; color: <?= $overall_avg >= 10 ? '#2ecc71' : '#e74c3c' ?>;">
-                <?= $overall_avg >= 10 ? ($lang == 'ar' ? 'مقبول' : 'Admitted') : ($lang == 'ar' ? 'راسب' : 'Failed') ?>
-            </h3>
-        </div>
-    </div>
-    <?php endif; ?>
+
     
 </div>
 

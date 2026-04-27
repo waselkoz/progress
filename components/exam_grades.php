@@ -29,23 +29,24 @@ if (isset($_SESSION['student_id'])) {
     foreach ($exam_grades as $gm) {
         $grade = $gm['final_grade'];
         
-        if ($grade === null) {
-            $missing_any_grade = true;
+        if ($grade === null || $grade === '') {
             $ca_sum = 0;
             $ca_count = 0;
-            if ($gm['td_grade'] !== null) {
-                $ca_sum += $gm['td_grade'];
+            if ($gm['td_grade'] !== null && $gm['td_grade'] !== '') {
+                $ca_sum += (float)$gm['td_grade'];
                 $ca_count++;
             }
-            if ($gm['tp_grade'] !== null) {
-                $ca_sum += $gm['tp_grade'];
+            if ($gm['tp_grade'] !== null && $gm['tp_grade'] !== '') {
+                $ca_sum += (float)$gm['tp_grade'];
                 $ca_count++;
             }
             $ca_avg = ($ca_count > 0) ? ($ca_sum / $ca_count) : null;
 
-            $exam = $gm['grade'];
-            if ($gm['rattrapage_grade'] !== null && ($exam === null || $gm['rattrapage_grade'] > $exam)) {
-                $exam = $gm['rattrapage_grade'];
+            $exam = ($gm['grade'] !== null && $gm['grade'] !== '') ? (float)$gm['grade'] : null;
+            $rattrapage = ($gm['rattrapage_grade'] !== null && $gm['rattrapage_grade'] !== '') ? (float)$gm['rattrapage_grade'] : null;
+            
+            if ($rattrapage !== null && ($exam === null || $rattrapage > $exam)) {
+                $exam = $rattrapage;
             }
 
             if ($exam !== null && $ca_avg !== null) {
@@ -57,7 +58,11 @@ if (isset($_SESSION['student_id'])) {
             }
         }
 
-        if ($grade !== null) {
+        if ($grade === null || $grade === '') {
+            $missing_any_grade = true;
+        }
+
+        if ($grade !== null && $grade !== '') {
             $weighted_sum += ($grade * $gm['coefficient']);
             $total_coef += $gm['coefficient'];
             if ($grade >= 10) {
@@ -77,6 +82,9 @@ if ($missing_any_grade) {
     $total_credits_earned = 0; // Don't show credits until all grades are in
 } else {
     $moyenne = ($total_coef > 0) ? ($weighted_sum / $total_coef) : null;
+    if ($moyenne !== null && $moyenne >= 10) {
+        $total_credits_earned = $total_credits_possible;
+    }
 }
 ?>
 
